@@ -1133,7 +1133,7 @@ def send_welcome(message):
     user_first_name = message.from_user.first_name
     welcome_message = (
         f"Здравствуйте, {user_first_name}!\n\n"
-        "Я бот компании Bratchikov Cars. Я помогу вам рассчитать стоимость понравившегося вам автомобиля из Южной Кореи до стран СНГ.\n\n"
+        "Я бот компании Bratchikov Cars. Я помогу вам рассчитать стоимость понравившегося вам автомобиля из 🇰🇷 Южной Кореи до 🇷🇺 РФ.\n\n"
         "Выберите действие из меню ниже."
     )
 
@@ -1458,7 +1458,7 @@ def calculate_cost(link, message, user_type):
             link = f"https://www.kbchachacha.com/public/car/detail.kbc?carSeq={car_id}"
         else:
             send_error_message(message, "🚫 Не удалось извлечь carSeq из ссылки.")
-            return
+            returnj
 
     elif "kcar.com" in link:
         parsed_url = urlparse(link)
