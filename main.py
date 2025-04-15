@@ -1121,6 +1121,15 @@ def send_welcome(message):
 
     get_currency_rates()
 
+    # Проверяем, подписан ли пользователь на канал
+    user_id = message.from_user.id
+    try:
+        chat_member = bot.get_chat_member(f"@{CHANNEL_USERNAME}", user_id)
+        is_subscribed = chat_member.status in ["member", "administrator", "creator"]
+    except Exception as e:
+        print(f"Ошибка при проверке подписки: {e}")
+        is_subscribed = False
+
     user_first_name = message.from_user.first_name
     welcome_message = (
         f"Здравствуйте, {user_first_name}!\n\n"
@@ -1136,6 +1145,20 @@ def send_welcome(message):
         message.chat.id,
         photo=logo_url,
     )
+
+    # Если пользователь не подписан, предлагаем подписаться
+    if not is_subscribed:
+        subscription_keyboard = types.InlineKeyboardMarkup()
+        subscription_keyboard.add(
+            types.InlineKeyboardButton(
+                "Подписаться на канал", url=f"https://t.me/{CHANNEL_USERNAME}"
+            )
+        )
+        bot.send_message(
+            message.chat.id,
+            f"Для полного доступа к функциям бота, пожалуйста, подпишитесь на наш канал @{CHANNEL_USERNAME}",
+            reply_markup=subscription_keyboard,
+        )
 
     # Отправляем приветственное сообщение
     bot.send_message(message.chat.id, welcome_message, reply_markup=main_menu())
