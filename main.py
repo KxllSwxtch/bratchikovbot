@@ -916,9 +916,24 @@ def set_bot_commands():
         types.BotCommand("exchange_rates", "Курсы валют"),
         types.BotCommand("my_cars", "Мои избранные автомобили"),
         types.BotCommand("users", "Статистика (для менеджеров)"),
-        types.BotCommand("set_krw_rate", "Установить курс RUB → KRW (для менеджеров)"),
         # types.BotCommand("orders", "Список заказов (Для менеджеров)"),
     ]
+
+    # Проверяем, является ли пользователь менеджером
+    user_id = bot.get_me().id
+    if user_id in MANAGERS:
+        commands.extend(
+            [
+                types.BotCommand("orders", "Просмотр всех заказов (для менеджеров)"),
+                types.BotCommand(
+                    "set_krw_rate", "Установить курс RUB → KRW (для менеджеров)"
+                ),
+                types.BotCommand(
+                    "reset_krw_rate",
+                    "Сбросить кастомный курс RUB → KRW (для менеджеров)",
+                ),
+            ]
+        )
 
     bot.set_my_commands(commands)
 
@@ -941,7 +956,11 @@ def get_usdt_to_krw_rate():
 
 
 def get_rub_to_krw_rate():
-    global rub_to_krw_rate
+    global rub_to_krw_rate, custom_rub_to_krw_rate
+
+    # Если установлен кастомный курс, не перезаписываем его
+    if custom_rub_to_krw_rate is not None:
+        return custom_rub_to_krw_rate
 
     url = "https://www.cbr-xml-daily.ru/daily_json.js"
 
@@ -962,6 +981,36 @@ def get_rub_to_krw_rate():
 
 # Переменная для хранения кастомного курса
 custom_rub_to_krw_rate = None
+
+
+# Функция для сохранения кастомного курса в файл
+def save_custom_rate():
+    global custom_rub_to_krw_rate
+    if custom_rub_to_krw_rate is not None:
+        try:
+            with open("custom_rate.json", "w") as f:
+                json.dump({"rate": custom_rub_to_krw_rate}, f)
+            print(f"Кастомный курс {custom_rub_to_krw_rate} сохранен")
+        except Exception as e:
+            print(f"Ошибка при сохранении кастомного курса: {e}")
+
+
+# Функция для загрузки кастомного курса из файла
+def load_custom_rate():
+    global custom_rub_to_krw_rate, rub_to_krw_rate
+    try:
+        if os.path.exists("custom_rate.json"):
+            with open("custom_rate.json", "r") as f:
+                data = json.load(f)
+                custom_rub_to_krw_rate = data.get("rate")
+                rub_to_krw_rate = custom_rub_to_krw_rate  # Устанавливаем текущий курс равным кастомному
+                print(f"Загружен кастомный курс: {custom_rub_to_krw_rate}")
+    except Exception as e:
+        print(f"Ошибка при загрузке кастомного курса: {e}")
+
+
+# Загружаем кастомный курс при запуске
+load_custom_rate()
 
 
 @bot.message_handler(commands=["set_krw_rate"])
@@ -989,11 +1038,41 @@ def set_custom_krw_rate(message):
         custom_rub_to_krw_rate = new_rate
         rub_to_krw_rate = new_rate
 
+        # Сохраняем кастомный курс в файл
+        save_custom_rate()
+
         bot.reply_to(message, f"Установлен кастомный курс RUB → KRW: {new_rate:.4f}")
     except ValueError:
         bot.reply_to(message, "Неверный формат числа. Введите корректное число.")
     except Exception as e:
         bot.reply_to(message, f"Произошла ошибка: {str(e)}")
+
+
+# Добавляем команду для сброса кастомного курса
+@bot.message_handler(commands=["reset_krw_rate"])
+def reset_custom_krw_rate(message):
+    # Проверяем, является ли пользователь администратором
+    if message.from_user.id not in MANAGERS:
+        bot.reply_to(message, "У вас нет прав для использования этой команды.")
+        return
+
+    global custom_rub_to_krw_rate, rub_to_krw_rate
+    custom_rub_to_krw_rate = None
+
+    # Получаем актуальный курс
+    get_rub_to_krw_rate()
+
+    # Удаляем файл с сохраненным курсом
+    try:
+        if os.path.exists("custom_rate.json"):
+            os.remove("custom_rate.json")
+    except Exception as e:
+        print(f"Ошибка при удалении файла с кастомным курсом: {e}")
+
+    bot.reply_to(
+        message,
+        f"Кастомный курс сброшен. Текущий курс RUB → KRW: {rub_to_krw_rate:.4f}",
+    )
 
 
 # Обновление функции получения курса для учета кастомного значения
@@ -1118,8 +1197,8 @@ def send_welcome(message):
     add_user_if_not_exists(message.from_user)
 
     # Удаляем webhook перед стартом бота
-
-    get_currency_rates()
+    # Убираем обновление курса при старте
+    # get_currency_rates()
 
     # Проверяем, подписан ли пользователь на канал
     user_id = message.from_user.id
@@ -1407,9 +1486,7 @@ def get_car_info(url):
 def calculate_cost(link, message, user_type):
     global car_data, car_id_external, car_month, car_year, krw_rub_rate, eur_rub_rate, rub_to_krw_rate, usd_rate, usdt_to_krw_rate
 
-    get_currency_rates()
-    get_usdt_to_krw_rate()
-
+    # Теперь только получаем курсы, но не сбрасываем кастомные
     bot.send_message(
         message.chat.id,
         "✅ Подгружаю актуальный курс валют и делаю расчёты. ⏳ Пожалуйста подождите...",
@@ -2446,10 +2523,7 @@ def process_engine_volume(message):
 def process_car_price(message):
     global usd_to_krw_rate, usd_to_rub_rate
 
-    # Получаем актуальный курс валют
-    get_currency_rates()
-    get_usdt_to_krw_rate()
-
+    # Получаем актуальный курс валют, но убираем перезагрузку rub_to_krw_rate
     user_input = message.text.strip()
 
     # Проверяем, что введено число
@@ -2521,8 +2595,8 @@ def process_car_price(message):
         + customs_fee / get_actual_rub_to_krw_rate()  # Таможенный сбор
         + customs_duty / get_actual_rub_to_krw_rate()  # Таможенная пошлина
         + recycling_fee / get_actual_rub_to_krw_rate()  # Утильсбор
-        + 30000 / get_actual_rub_to_krw_rate()  # Брокер РФ
-        + 15000 / get_actual_rub_to_krw_rate()  # Временная регистрация
+        + 15000 / get_actual_rub_to_krw_rate()  # Брокер РФ
+        + 30000 / get_actual_rub_to_krw_rate()  # Временная регистрация
         + 45000 / get_actual_rub_to_krw_rate()  # СВХ
         + 25000 / get_actual_rub_to_krw_rate()  # Лаборатория
         + 2000 / get_actual_rub_to_krw_rate()  # Коносамент
@@ -2606,32 +2680,32 @@ def process_car_price(message):
     # car_data["broker_usd"] = 30000 / usd_to_rub_rate
 
     car_data["svh_rub"] = 45000
-    car_data["svh_krw"] = 45000 / rub_to_krw_rate
+    car_data["svh_krw"] = 45000 / get_actual_rub_to_krw_rate()
     # car_data["svh_usd"] = 45000 / usd_to_rub_rate
 
     car_data["lab_rub"] = 25000
-    car_data["lab_krw"] = 25000 / rub_to_krw_rate
+    car_data["lab_krw"] = 25000 / get_actual_rub_to_krw_rate()
     # car_data["lab_usd"] = 25000 / usd_to_rub_rate
 
     car_data["konosament_rub"] = 2000
-    car_data["konosament_krw"] = 2000 / rub_to_krw_rate
+    car_data["konosament_krw"] = 2000 / get_actual_rub_to_krw_rate()
     # car_data["konosament_usd"] = 2000 / usd_to_rub_rate
 
     car_data["expertise_rub"] = 2000
-    car_data["expertise_krw"] = 2000 / rub_to_krw_rate
+    car_data["expertise_krw"] = 2000 / get_actual_rub_to_krw_rate()
     # car_data["expertise_usd"] = 2000 / usd_to_rub_rate
 
     car_data["svh_transfer_rub"] = 8000
-    car_data["svh_transfer_krw"] = 8000 / rub_to_krw_rate
+    car_data["svh_transfer_krw"] = 8000 / get_actual_rub_to_krw_rate()
     # car_data["svh_transfer_usd"] = 8000 / usd_to_rub_rate
 
     car_data["consultant_fee_rub"] = 20000 if engine_volume > 2000 else 0
     car_data["consultant_fee_krw"] = (
-        20000 / rub_to_krw_rate if engine_volume > 2000 else 0
+        20000 / get_actual_rub_to_krw_rate() if engine_volume > 2000 else 0
     )
 
     car_data["yuri_fee_rub"] = 120000
-    car_data["yuri_fee_krw"] = 120000 / rub_to_krw_rate
+    car_data["yuri_fee_krw"] = 120000 / get_actual_rub_to_krw_rate()
     # car_data["yuri_fee_usd"] = 120000 / usd_to_rub_rate
 
     # car_data["consultant_fee_usd"] = (
