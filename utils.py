@@ -116,7 +116,7 @@ def get_customs_fees(
     }
 
     try:
-        response = requests.post(url, data=payload, headers=headers, proxies=proxies)
+        response = requests.post(url, data=payload, headers=headers)
         response.raise_for_status()
         return response.json()
     except requests.RequestException as e:
