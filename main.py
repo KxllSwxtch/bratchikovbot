@@ -916,24 +916,13 @@ def set_bot_commands():
         types.BotCommand("exchange_rates", "Курсы валют"),
         types.BotCommand("my_cars", "Мои избранные автомобили"),
         types.BotCommand("users", "Статистика (для менеджеров)"),
+        types.BotCommand("set_krw_rate", "Установить курс RUB → KRW (для менеджеров)"),
+        types.BotCommand(
+            "reset_krw_rate",
+            "Сбросить кастомный курс RUB → KRW (для менеджеров)",
+        ),
         # types.BotCommand("orders", "Список заказов (Для менеджеров)"),
     ]
-
-    # Проверяем, является ли пользователь менеджером
-    user_id = bot.get_me().id
-    if user_id in MANAGERS:
-        commands.extend(
-            [
-                types.BotCommand("orders", "Просмотр всех заказов (для менеджеров)"),
-                types.BotCommand(
-                    "set_krw_rate", "Установить курс RUB → KRW (для менеджеров)"
-                ),
-                types.BotCommand(
-                    "reset_krw_rate",
-                    "Сбросить кастомный курс RUB → KRW (для менеджеров)",
-                ),
-            ]
-        )
 
     bot.set_my_commands(commands)
 
