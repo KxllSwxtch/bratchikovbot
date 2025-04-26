@@ -1524,7 +1524,7 @@ def calculate_cost(link, message, user_type):
             link = f"https://www.kbchachacha.com/public/car/detail.kbc?carSeq={car_id}"
         else:
             send_error_message(message, "🚫 Не удалось извлечь carSeq из ссылки.")
-            returnj
+            return
 
     elif "kcar.com" in link:
         parsed_url = urlparse(link)
@@ -1637,7 +1637,7 @@ def calculate_cost(link, message, user_type):
         keyboard = types.InlineKeyboardMarkup()
         keyboard.add(
             types.InlineKeyboardButton(
-                "Написать менеджеру", url="https://t.me/Aleksandr_82auto"
+                "Написать менеджеру", url="https://t.me/bratchikov_y"
             )
         )
         keyboard.add(
@@ -1903,7 +1903,7 @@ def calculate_cost(link, message, user_type):
             )
         keyboard.add(
             types.InlineKeyboardButton(
-                "Написать менеджеру", url="https://t.me/Aleksandr_82auto"
+                "Написать менеджеру", url="https://t.me/bratchikov_y"
             )
         )
         keyboard.add(
@@ -2356,7 +2356,7 @@ def handle_callback_query(call):
             )
             keyboard.add(
                 types.InlineKeyboardButton(
-                    "Связаться с менеджером", url="https://t.me/Aleksandr_82auto"
+                    "Связаться с менеджером", url="https://t.me/bratchikov_y"
                 )
             )
 
@@ -2392,7 +2392,7 @@ def handle_callback_query(call):
             )
             keyboard.add(
                 types.InlineKeyboardButton(
-                    "Связаться с менеджером", url="https://t.me/Aleksandr_82auto"
+                    "Связаться с менеджером", url="https://t.me/bratchikov_y"
                 )
             )
             keyboard.add(
@@ -2701,35 +2701,14 @@ def process_car_price(message):
     #     20000 / usd_to_rub_rate if car_engine_displacement > 2000 else 0
     # )
 
-    car_insurance_payments_chutcha = ""
-    if "kcar" in link:
-        own_insurance_text = (
-            f"₩{format_number(own_car_insurance_payments)}"
-            if isinstance(own_car_insurance_payments, int)
-            else "Нет"
-        )
-        other_insurance_text = (
-            f"₩{format_number(other_car_insurance_payments)}"
-            if isinstance(other_car_insurance_payments, int)
-            else "Нет"
-        )
-
-        car_insurance_payments_chutcha = (
-            f"Страховые выплаты по данному автомобилю:\n{own_insurance_text}\n"
-            f"Страховые выплаты другому автомобилю:\n{other_insurance_text}\n\n"
-        )
-
     # Формирование сообщения результата
     # <b>${format_number(total_cost_usd)}</b> |
     # f"Стоимость автомобиля в Корее: ₩{format_number(price_krw)}\n"
     # f"Стоимость автомобиля под ключ до Владивостока:\n<b>₩{format_number(total_cost_krw)}</b> | <b>{format_number(total_cost)} ₽</b>\n\n"
 
     result_message = (
-        f"🚗 {car_title}\n\n"
-        f"🗓 Возраст: {age_formatted} (дата регистрации: {month}/{year})\n"
-        f"🛣 Пробег: {formatted_mileage}\n"
-        f"🔧 Объём двигателя: {engine_volume_formatted}\n"
-        f"⚙️ КПП: {formatted_transmission}\n\n"
+        f"🗓 Возраст: {age_group}\n"
+        f"🔧 Объём двигателя: {engine_volume}\n"
         f"💵 <b>Курс Воны к Рублю: {get_actual_rub_to_krw_rate():.4f} ₽</b>\n\n"
         f"🇰🇷 Платежи в Корее\n"
         f"▪️ Стоимость автомобиля: <b>₩{format_number(car_data['car_price_krw'])}</b> | <b>{format_number(car_data['car_price_rub'])} ₽</b>\n"
@@ -2748,8 +2727,6 @@ def process_car_price(message):
         f"▪️ Услуги консультанта: <b>{format_number(car_data['consultant_fee_rub'])} ₽</b>\n"
         f"▪️ Моя комиссия: <b>{format_number(car_data['yuri_fee_rub'])} ₽</b>\n\n"
         f"🟰 Итого под ключ до Владивостока: <b>{format_number(car_data['total_cost_rub'])} ₽</b>\n\n"
-        f"{car_insurance_payments_chutcha}"
-        f"🔗 <a href='{preview_link}'>Ссылка на автомобиль</a>\n\n"
         "Если данное авто попадает под санкции, пожалуйста уточните возможность отправки в вашу страну у меня:\n"
         f"▪️ @bratchikov_y (Юрий)\n\n"
         "🔗 <a href='https://t.me/bratchikov_cars'>Официальный телеграм канал</a>\n"
@@ -2764,7 +2741,7 @@ def process_car_price(message):
     # )
     keyboard.add(
         types.InlineKeyboardButton(
-            "Связаться с менеджером", url="https://t.me/Aleksandr_82auto"
+            "Связаться с менеджером", url="https://t.me/bratchikov_y"
         )
     )
     keyboard.add(types.InlineKeyboardButton("Главное меню", callback_data="main_menu"))
