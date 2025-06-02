@@ -108,6 +108,8 @@ def get_customs_fees(
         "curr": "KRW",  # Валюта
     }
 
+    print(engine_volume, car_price, car_year, car_month, engine_type, owner_type)
+
     headers = {
         "User-Agent": random.choice(USER_AGENTS),
         "Referer": "https://calcus.ru/",

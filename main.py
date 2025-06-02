@@ -1385,6 +1385,26 @@ def get_car_info(url):
             else:
                 print("❌ Таблица информации не найдена")
 
+            # Если объем двигателя не найден или равен 0, пытаемся извлечь из названия
+            if not car_engine_displacement or car_engine_displacement == "0cc":
+                # Ищем числа с точкой (например, 2.0) в названии автомобиля
+                engine_match = re.search(r"(\d+\.\d+)", car_name)
+                if engine_match:
+                    # Преобразуем, например, 2.0 в 2000cc
+                    engine_size = float(engine_match.group(1))
+                    car_engine_displacement = f"{int(engine_size * 1000)}cc"
+                    print(
+                        f"✅ Извлечен объем двигателя из названия: {car_engine_displacement}"
+                    )
+                else:
+                    # Ищем просто числа (например, 2000) в названии
+                    engine_match = re.search(r"(\d{3,4})", car_name)
+                    if engine_match and 500 <= int(engine_match.group(1)) <= 9000:
+                        car_engine_displacement = f"{engine_match.group(1)}cc"
+                        print(
+                            f"✅ Извлечен объем двигателя из названия: {car_engine_displacement}"
+                        )
+
             car_info = {
                 "name": car_name,
                 "car_price": car_price,
@@ -1504,25 +1524,47 @@ def calculate_cost(link, message, user_type):
         parsed_url = urlparse(link)
         query_params = parse_qs(parsed_url.query)
 
-        # Попытка 1: обычный carSeq в параметрах
+        print(f"Обработка ссылки KBChaCha: {link}")
+        print(f"Путь URL: {parsed_url.path}")
+        print(f"Query параметры: {query_params}")
+
+        # Попытка 1: обычный carSeq в параметрах (поддерживает все форматы включая /public/web/car/detail.kbc)
         car_id = query_params.get("carSeq", [None])[0]
+
+        if car_id:
+            print(f"Найден carSeq в параметрах: {car_id}")
 
         # Попытка 2: если есть параметр `c=...`, надо выполнить редирект
         if not car_id and query_params.get("c"):
+            print("Найден параметр 'c', выполняем редирект...")
             try:
                 response = requests.get(link, allow_redirects=True, timeout=5)
                 redirected_url = response.url
+                print(f"URL после редиректа: {redirected_url}")
                 redirected_query = parse_qs(urlparse(redirected_url).query)
                 car_id = redirected_query.get("carSeq", [None])[0]
+                if car_id:
+                    print(f"Найден carSeq после редиректа: {car_id}")
             except Exception as e:
                 print(f"Ошибка при обработке редиректа KBChaCha: {e}")
                 send_error_message(message, "🚫 Ошибка при обработке ссылки KBChaCha.")
                 return
 
+        # Попытка 3: проверяем фрагмент URL (после #) на случай если carSeq там
+        if not car_id and parsed_url.fragment:
+            print(f"Проверяем фрагмент URL: {parsed_url.fragment}")
+            fragment_params = parse_qs(parsed_url.fragment)
+            car_id = fragment_params.get("carSeq", [None])[0]
+            if car_id:
+                print(f"Найден carSeq во фрагменте: {car_id}")
+
         if car_id:
             car_id_external = car_id
+            # Нормализуем ссылку к стандартному формату
             link = f"https://www.kbchachacha.com/public/car/detail.kbc?carSeq={car_id}"
+            print(f"Нормализованная ссылка: {link}")
         else:
+            print("Не удалось извлечь carSeq из ссылки")
             send_error_message(message, "🚫 Не удалось извлечь carSeq из ссылки.")
             return
 
@@ -2690,7 +2732,7 @@ def process_car_price(message):
 
     car_data["consultant_fee_rub"] = 20000 if engine_volume > 2000 else 0
     car_data["consultant_fee_krw"] = (
-        20000 / get_actual_rub_to_krw_rate() if engine_volume > 2000 else 0
+        20000 / get_actual_rub_to_krw_rate() if car_engine_displacement > 2000 else 0
     )
 
     car_data["yuri_fee_rub"] = 120000
