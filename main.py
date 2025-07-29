@@ -2732,7 +2732,7 @@ def process_car_price(message):
 
     car_data["consultant_fee_rub"] = 20000 if engine_volume > 2000 else 0
     car_data["consultant_fee_krw"] = (
-        20000 / get_actual_rub_to_krw_rate() if car_engine_displacement > 2000 else 0
+        20000 / get_actual_rub_to_krw_rate() if engine_volume > 2000 else 0
     )
 
     car_data["yuri_fee_rub"] = 120000
