@@ -2889,7 +2889,7 @@ def handle_message(message):
         show_faq(message)
 
     elif re.match(
-        r"^https?://(www|fem)\.encar\.com/.*|^https?://(www\.)?kbchachacha\.com/.*|^https?://m\.kbchachacha\.com/.*|^https?://(www\.)?kcar\.com/.*",
+        r"^https?://(www|fem)\.encar\.com/.*|^https?://(www\.)?kbchachacha\.com/.*|^https?://m\.kbchachacha\.com/.*|^https?://(www\.)?kcar\.com/.*|^https?://m\.kcar\.com/.*",
         user_message,
     ):
         user_type = user_type_map.get(message.from_user.id)
