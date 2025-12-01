@@ -2677,6 +2677,42 @@ def process_engine_volume(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add(types.KeyboardButton("Главное меню"))
 
+    # Запрашиваем мощность двигателя
+    bot.send_message(
+        message.chat.id,
+        "Введите мощность двигателя в л.с. (например: 159):",
+        reply_markup=markup,
+    )
+    bot.register_next_step_handler(message, process_hp)
+
+
+def process_hp(message):
+    """Обрабатывает ввод мощности двигателя для ручного расчёта."""
+    user_input = message.text.strip()
+
+    if user_input == "Главное меню":
+        bot.send_message(message.chat.id, "Главное меню", reply_markup=main_menu())
+        return
+
+    # Валидация ввода HP
+    try:
+        hp = int(user_input)
+        if not (50 <= hp <= 1500):
+            raise ValueError("HP out of range")
+    except ValueError:
+        bot.send_message(
+            message.chat.id,
+            "Пожалуйста, введите корректную мощность в л.с. (число от 50 до 1500).",
+        )
+        bot.register_next_step_handler(message, process_hp)
+        return
+
+    # Сохраняем мощность
+    user_data[message.chat.id]["hp"] = hp
+
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.add(types.KeyboardButton("Главное меню"))
+
     # Запрашиваем стоимость авто
     bot.send_message(
         message.chat.id,
@@ -2718,6 +2754,7 @@ def process_car_price(message):
     age_group = user_data[message.chat.id]["car_age"]
     engine_volume = user_data[message.chat.id]["engine_volume"]
     car_price_krw = user_data[message.chat.id]["car_price_krw"]
+    hp = user_data[message.chat.id].get("hp", 1)
 
     # Конвертируем стоимость авто в рубли
     price_krw = car_price_krw
@@ -2729,6 +2766,7 @@ def process_car_price(message):
         price_krw,
         age_group,
         engine_type=1,
+        power=hp,
     )
 
     # Таможенный сбор
@@ -2885,7 +2923,8 @@ def process_car_price(message):
 
     result_message = (
         f"🗓 Возраст: {age_group}\n"
-        f"🔧 Объём двигателя: {engine_volume}\n"
+        f"🔧 Объём двигателя: {engine_volume} cc\n"
+        f"🐴 Мощность: {hp} л.с.\n"
         f"💵 <b>Курс Воны к Рублю: {get_actual_rub_to_krw_rate():.4f} ₽</b>\n\n"
         f"🇰🇷 Платежи в Корее\n"
         f"▪️ Стоимость автомобиля: <b>₩{format_number(car_data['car_price_krw'])}</b> | <b>{format_number(car_data['car_price_rub'])} ₽</b>\n"
