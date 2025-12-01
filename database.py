@@ -86,6 +86,23 @@ def create_tables():
                 );
                 """
             )
+
+            # Таблица для хранения мощности (HP) автомобилей по характеристикам
+            cur.execute(
+                """
+                CREATE TABLE IF NOT EXISTS car_hp_specs (
+                    id SERIAL PRIMARY KEY,
+                    manufacturer TEXT NOT NULL,
+                    model TEXT NOT NULL,
+                    generation TEXT,
+                    displacement INT NOT NULL,
+                    hp INT NOT NULL,
+                    added_by BIGINT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(manufacturer, model, generation, displacement)
+                );
+                """
+            )
             conn.commit()
 
 
@@ -320,3 +337,40 @@ def get_all_users():
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute("SELECT * FROM users ORDER BY created_at DESC;")
             return cur.fetchall()
+
+
+def get_stored_hp(manufacturer, model, generation, displacement):
+    """
+    Получает сохранённую мощность (HP) для автомобиля по характеристикам.
+    Возвращает HP (int) или None, если не найдено.
+    """
+    with connect_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT hp FROM car_hp_specs
+                WHERE manufacturer = %s AND model = %s AND generation = %s AND displacement = %s;
+                """,
+                (manufacturer, model, generation, displacement),
+            )
+            result = cur.fetchone()
+            return result["hp"] if result else None
+
+
+def save_hp_spec(manufacturer, model, generation, displacement, hp, user_id):
+    """
+    Сохраняет или обновляет мощность (HP) для автомобиля по характеристикам.
+    Использует upsert для обновления существующей записи.
+    """
+    with connect_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO car_hp_specs (manufacturer, model, generation, displacement, hp, added_by)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                ON CONFLICT (manufacturer, model, generation, displacement)
+                DO UPDATE SET hp = EXCLUDED.hp, added_by = EXCLUDED.added_by;
+                """,
+                (manufacturer, model, generation, displacement, hp, user_id),
+            )
+            conn.commit()

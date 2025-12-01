@@ -18,6 +18,60 @@ def format_number(number):
     return locale.format_string("%d", int(number), grouping=True).replace(",", ".")
 
 
+def get_pan_auto_data(car_id):
+    """
+    Получает данные автомобиля из pan-auto.ru API.
+    Возвращает dict с hp, costs и характеристиками авто при успехе.
+    Возвращает None при 404 или ошибке.
+    """
+    url = f"https://zefir.pan-auto.ru/api/cars/{car_id}/"
+    headers = {
+        "Accept": "*/*",
+        "Accept-Language": "en,ru;q=0.9",
+        "Cache-Control": "no-cache",
+        "Origin": "https://pan-auto.ru",
+        "Referer": "https://pan-auto.ru/",
+        "User-Agent": random.choice(USER_AGENTS),
+    }
+
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        if response.status_code == 404:
+            print(f"Pan-auto.ru: Car {car_id} not found (404)")
+            return None
+        response.raise_for_status()
+        data = response.json()
+
+        costs_rub = data.get("costs", {}).get("RUB", {})
+
+        return {
+            "hp": data.get("hp"),
+            "manufacturer": data.get("manufacturer", {}).get("translation"),
+            "model": data.get("model", {}).get("translation"),
+            "generation": data.get("generation", {}).get("translation") if data.get("generation") else None,
+            "displacement": data.get("displacement"),
+            "clearance_cost": costs_rub.get("clearanceCost"),
+            "customs_duty": costs_rub.get("customsDuty"),
+            "utilization_fee": costs_rub.get("utilizationFee"),
+            "final_cost": costs_rub.get("finalCost"),
+            "car_price_rub": costs_rub.get("carPrice"),
+            "delivery_cost": costs_rub.get("deliveryCost"),
+            "car_price_encar": costs_rub.get("carPriceEncar"),
+            "vladivostok_services": costs_rub.get("vladivostokServices"),
+            # Дополнительные поля
+            "mileage": data.get("mileage"),
+            "year": data.get("formYear"),
+            "fuel_type": data.get("fuelType"),
+            "color": data.get("color"),
+            "badge": data.get("badge"),
+            "badge_detail": data.get("badgeDetail"),
+            "photos": data.get("photos", []),
+        }
+    except requests.RequestException as e:
+        print(f"Ошибка при запросе к pan-auto.ru: {e}")
+        return None
+
+
 def calculate_age(year, month):
     """
     Рассчитывает возрастную категорию автомобиля по классификации calcus.ru.
@@ -46,13 +100,14 @@ def calculate_age(year, month):
         return "7-0"
 
 
-def get_customs_fees_manual(engine_volume, car_price, car_age, engine_type=1):
+def get_customs_fees_manual(engine_volume, car_price, car_age, engine_type=1, power=1):
     """
     Запрашивает расчёт таможенных платежей с сайта calcus.ru.
     :param engine_volume: Объём двигателя (куб. см)
     :param car_price: Цена авто в вонах
-    :param car_year: Год выпуска авто
+    :param car_age: Возрастная категория авто
     :param engine_type: Тип двигателя (1 - бензин, 2 - дизель, 3 - гибрид, 4 - электромобиль)
+    :param power: Мощность двигателя в л.с.
     :return: JSON с результатами расчёта
     """
     url = "https://calcus.ru/calculate/Customs"
@@ -61,7 +116,7 @@ def get_customs_fees_manual(engine_volume, car_price, car_age, engine_type=1):
         "owner": 1,  # Физлицо
         "age": car_age,  # Возрастная категория
         "engine": engine_type,  # Тип двигателя (по умолчанию 1 - бензин)
-        "power": 1,  # Лошадиные силы (можно оставить 1)
+        "power": power,  # Лошадиные силы
         "power_unit": 1,  # Тип мощности (1 - л.с.)
         "value": int(engine_volume),  # Объём двигателя
         "price": int(car_price),  # Цена авто в KRW
@@ -85,14 +140,17 @@ def get_customs_fees_manual(engine_volume, car_price, car_age, engine_type=1):
 
 
 def get_customs_fees(
-    engine_volume, car_price, car_year, car_month, engine_type=1, owner_type=1
+    engine_volume, car_price, car_year, car_month, engine_type=1, owner_type=1, power=1
 ):
     """
     Запрашивает расчёт таможенных платежей с сайта calcus.ru.
     :param engine_volume: Объём двигателя (куб. см)
     :param car_price: Цена авто в вонах
     :param car_year: Год выпуска авто
+    :param car_month: Месяц выпуска авто
     :param engine_type: Тип двигателя (1 - бензин, 2 - дизель, 3 - гибрид, 4 - электромобиль)
+    :param owner_type: Тип владельца (1 - физлицо, 2 - юрлицо)
+    :param power: Мощность двигателя в л.с.
     :return: JSON с результатами расчёта
     """
     url = "https://calcus.ru/calculate/Customs"
@@ -101,14 +159,14 @@ def get_customs_fees(
         "owner": owner_type,  # 1 - Физлицо, 2 - Юрлицо
         "age": calculate_age(car_year, car_month),  # Возрастная категория
         "engine": engine_type,  # Тип двигателя (по умолчанию 1 - бензин)
-        "power": 1,  # Лошадиные силы (можно оставить 1)
+        "power": power,  # Лошадиные силы
         "power_unit": 1,  # Тип мощности (1 - л.с.)
         "value": int(engine_volume),  # Объём двигателя
         "price": int(car_price),  # Цена авто в KRW
         "curr": "KRW",  # Валюта
     }
 
-    print(engine_volume, car_price, car_year, car_month, engine_type, owner_type)
+    print(engine_volume, car_price, car_year, car_month, engine_type, owner_type, power)
 
     headers = {
         "User-Agent": random.choice(USER_AGENTS),

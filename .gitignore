@@ -54,3 +54,6 @@ local_settings.py
 
 # Heroku
 .heroku/
+
+
+prompt.md
