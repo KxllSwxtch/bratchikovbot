@@ -3419,7 +3419,7 @@ logger = logging.getLogger(__name__)
 # Полное удаление webhook перед началом работы
 if __name__ == "__main__":
     set_bot_commands()
-    # create_tables()
+    create_tables()
 
     # Настройка обхода блокировок
     telebot.apihelper.RETRY_ON_ERROR = True
