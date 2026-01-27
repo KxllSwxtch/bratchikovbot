@@ -1,0 +1,6 @@
+venv/
+.env
+bot.log
+__pycache__
+test.__pycache__
+PROMPTS.md

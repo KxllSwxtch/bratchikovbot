@@ -100,7 +100,7 @@ def calculate_age(year, month):
         return "7-0"
 
 
-def get_customs_fees_manual(engine_volume, car_price, car_age, engine_type=1, power=1):
+def get_customs_fees_manual(engine_volume, car_price, car_age, engine_type=1, power=1, currency="KRW"):
     """
     Запрашивает расчёт таможенных платежей с сайта calcus.ru.
     :param engine_volume: Объём двигателя (куб. см)
@@ -119,8 +119,8 @@ def get_customs_fees_manual(engine_volume, car_price, car_age, engine_type=1, po
         "power": power,  # Лошадиные силы
         "power_unit": 1,  # Тип мощности (1 - л.с.)
         "value": int(engine_volume),  # Объём двигателя
-        "price": int(car_price),  # Цена авто в KRW
-        "curr": "KRW",  # Валюта
+        "price": int(car_price),  # Цена авто
+        "curr": currency,  # Валюта
     }
 
     headers = {
@@ -140,7 +140,7 @@ def get_customs_fees_manual(engine_volume, car_price, car_age, engine_type=1, po
 
 
 def get_customs_fees(
-    engine_volume, car_price, car_year, car_month, engine_type=1, owner_type=1, power=1
+    engine_volume, car_price, car_year, car_month, engine_type=1, owner_type=1, power=1, currency="KRW"
 ):
     """
     Запрашивает расчёт таможенных платежей с сайта calcus.ru.
@@ -162,8 +162,8 @@ def get_customs_fees(
         "power": power,  # Лошадиные силы
         "power_unit": 1,  # Тип мощности (1 - л.с.)
         "value": int(engine_volume),  # Объём двигателя
-        "price": int(car_price),  # Цена авто в KRW
-        "curr": "KRW",  # Валюта
+        "price": int(car_price),  # Цена авто
+        "curr": currency,  # Валюта
     }
 
     print(engine_volume, car_price, car_year, car_month, engine_type, owner_type, power)
