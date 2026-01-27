@@ -58,8 +58,7 @@ CHANNEL_USERNAME = "bratchikov_cars"
 
 # China (Che168) expense constants
 CHINA_FIRST_PAYMENT = 6600     # ¥6,600 задаток + отчет эксперта
-CHINA_DEALER_FEE = 3000        # ¥3,000 дилерский сбор
-CHINA_DELIVERY = 15000         # ¥15,000 доставка + оформление
+CHINA_EXPENSES = 10000         # ¥10,000 расходы по Китаю (дилерский сбор, доставка, оформление)
 CHINA_BROKER_FEE = 60000       # ₽60,000 брокер
 CHINA_AGENT_FEE = 50000        # ₽50,000 агентские услуги
 CHINA_SVH_FEE = 50000          # ₽50,000 СВХ
@@ -2385,10 +2384,9 @@ def complete_china_calculation(user_id, message):
     # Calculate costs
     first_payment_rub = CHINA_FIRST_PAYMENT * cny_rub_rate
     car_price_after_deposit = price_cny - CHINA_FIRST_PAYMENT
-    dealer_fee_rub = CHINA_DEALER_FEE * cny_rub_rate
-    delivery_rub = CHINA_DELIVERY * cny_rub_rate
+    china_expenses_rub = CHINA_EXPENSES * cny_rub_rate
 
-    china_total_cny = car_price_after_deposit + CHINA_DEALER_FEE + CHINA_DELIVERY
+    china_total_cny = car_price_after_deposit + CHINA_EXPENSES
     china_total_rub = china_total_cny * cny_rub_rate
 
     russia_expenses_rub = (
@@ -2413,10 +2411,8 @@ def complete_china_calculation(user_id, message):
     car_data["first_payment_rub"] = first_payment_rub
     car_data["car_price_cny"] = car_price_after_deposit
     car_data["car_price_rub"] = car_price_after_deposit * cny_rub_rate
-    car_data["dealer_china_cny"] = CHINA_DEALER_FEE
-    car_data["dealer_china_rub"] = dealer_fee_rub
-    car_data["delivery_china_cny"] = CHINA_DELIVERY
-    car_data["delivery_china_rub"] = delivery_rub
+    car_data["china_expenses_cny"] = CHINA_EXPENSES
+    car_data["china_expenses_rub"] = china_expenses_rub
     car_data["china_total_cny"] = china_total_cny
     car_data["china_total_rub"] = china_total_rub
     car_data["customs_duty_rub"] = customs_duty
@@ -2452,7 +2448,7 @@ def complete_china_calculation(user_id, message):
         f"💵 <b>Курс Юаня к Рублю: {cny_rub_rate:.2f} ₽</b>\n\n"
         f"🇨🇳 Платежи в Китае\n"
         f"▪️ Стоимость автомобиля: <b>¥{format_number(price_cny)}</b> | <b>{format_number(int(price_cny * cny_rub_rate))} ₽</b>\n"
-        f"▪️ Расходы по Китаю (дилерский сбор, доставка, оформление): <b>¥{format_number(CHINA_DEALER_FEE + CHINA_DELIVERY)}</b> | <b>{format_number(int((CHINA_DEALER_FEE + CHINA_DELIVERY) * cny_rub_rate))} ₽</b>\n\n\n"
+        f"▪️ Расходы по Китаю (дилерский сбор, доставка, оформление): <b>¥{format_number(CHINA_EXPENSES)}</b> | <b>{format_number(int(CHINA_EXPENSES * cny_rub_rate))} ₽</b>\n\n\n"
         f"🇷🇺 Платежи в России\n"
         f"▪️ <b>Единая таможенная ставка</b>: <b>{format_number(customs_duty)} ₽</b>\n"
         f"▪️ <b>Таможенное оформление</b>: <b>{format_number(customs_fee)} ₽</b>\n"
@@ -2822,8 +2818,7 @@ def handle_callback_query(call):
             f"Задаток (бронь авто + отчёт эксперта):\n<b>¥{format_number(car_data['first_payment_cny'])}</b> | <b>{format_number(int(car_data['first_payment_rub']))} ₽</b>\n\n\n"
             f"<i>ВТОРАЯ ЧАСТЬ ОПЛАТЫ</i>:\n\n"
             f"Стоимость авто (минус задаток):\n<b>¥{format_number(car_data['car_price_cny'])}</b> | <b>{format_number(int(car_data['car_price_rub']))} ₽</b>\n\n"
-            f"Дилерский сбор:\n<b>¥{format_number(car_data['dealer_china_cny'])}</b> | <b>{format_number(int(car_data['dealer_china_rub']))} ₽</b>\n\n"
-            f"Доставка, снятие с учёта, оформление:\n<b>¥{format_number(car_data['delivery_china_cny'])}</b> | <b>{format_number(int(car_data['delivery_china_rub']))} ₽</b>\n\n"
+            f"Расходы по Китаю (дилерский сбор, доставка, оформление):\n<b>¥{format_number(car_data['china_expenses_cny'])}</b> | <b>{format_number(int(car_data['china_expenses_rub']))} ₽</b>\n\n"
             f"<b>Итого расходов по Китаю</b>:\n<b>¥{format_number(car_data['china_total_cny'])}</b> | <b>{format_number(int(car_data['china_total_rub']))} ₽</b>\n\n\n"
             f"<i>РАСХОДЫ РОССИЯ</i>:\n\n"
             f"Единая таможенная ставка:\n<b>{format_number(int(car_data['customs_duty_rub']))} ₽</b>\n\n"
