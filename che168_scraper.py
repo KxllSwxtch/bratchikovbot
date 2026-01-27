@@ -5,11 +5,16 @@ Fetches car listing data from Che168.com (Chinese used car marketplace)
 using their mobile API endpoint.
 """
 
+import os
 import re
-import time
 import requests
 import logging
 from datetime import datetime
+from urllib3.util.retry import Retry
+from requests.adapters import HTTPAdapter
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Che168 API endpoints
 CHE168_API_URL = "https://apiuscdt.che168.com/apic/v2/car/getcarinfo"
@@ -52,17 +57,26 @@ FUEL_TYPE_NAMES_RU = {
     "增程式": "Гибрид (рейндж-экстендер)",
 }
 
-# Proxy configurations for Che168 (with fallback options)
-CHE168_PROXY_OPTIONS = [
-    # Oxylabs China proxy (primary)
-    {"http": "http://customer-tiksanauto_M2zEp-cc-cn:Tiksan_auto99@pr.oxylabs.io:7777",
-     "https": "http://customer-tiksanauto_M2zEp-cc-cn:Tiksan_auto99@pr.oxylabs.io:7777"},
-    # Russian datacenter proxy (fallback)
-    {"http": "http://B01vby:GBno0x@45.118.250.2:8000",
-     "https": "http://B01vby:GBno0x@45.118.250.2:8000"},
-    # No proxy (last resort)
-    None,
-]
+def _get_proxy_config():
+    """Return proxy config from CHE168_PROXY_URL env var, or None for direct connection."""
+    url = os.getenv("CHE168_PROXY_URL", "").strip()
+    if url:
+        return {"http": url, "https": url}
+    return None
+
+
+def _create_session():
+    """Create a requests session with retry logic and optional proxy."""
+    session = requests.Session()
+    retry = Retry(total=3, backoff_factor=1, status_forcelist=[500, 502, 503, 504])
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
+    session.headers.update(CHE168_HEADERS)
+    proxy = _get_proxy_config()
+    if proxy:
+        session.proxies.update(proxy)
+    return session
 
 
 def extract_car_id_from_che168_url(url):
@@ -106,17 +120,20 @@ def is_che168_url(url):
     return bool(re.match(r'^https?://(www\.|m\.)?che168\.com/.*', url))
 
 
-def get_che168_car_info(infoid, proxies=None):
+def get_che168_car_info(infoid, session=None):
     """
     Fetch car information from Che168 API.
 
     Args:
         infoid: Car listing ID (infoid)
-        proxies: Optional proxy configuration dict
+        session: Optional requests.Session (created if not provided)
 
     Returns:
         dict: Car information, or None if fetching fails
     """
+    if session is None:
+        session = _create_session()
+
     try:
         params = {
             "infoid": str(infoid),
@@ -136,11 +153,9 @@ def get_che168_car_info(infoid, proxies=None):
             "_subappid": "",
         }
 
-        response = requests.get(
+        response = session.get(
             CHE168_API_URL,
             params=params,
-            headers=CHE168_HEADERS,
-            proxies=proxies,
             timeout=30
         )
 
@@ -151,7 +166,6 @@ def get_che168_car_info(infoid, proxies=None):
                 return parse_che168_response(data["result"])
             else:
                 logging.warning(f"Che168 API returned error: {data.get('message')}")
-                print(f"Che168 API error: {data.get('message')}")
                 return None
 
         logging.warning(f"Che168 API HTTP error: {response.status_code}")
@@ -159,30 +173,30 @@ def get_che168_car_info(infoid, proxies=None):
 
     except requests.exceptions.Timeout:
         logging.error("Che168 API timeout")
-        print("Che168 API timeout")
         return None
     except requests.exceptions.RequestException as e:
         logging.error(f"Che168 API request failed: {e}")
-        print(f"Che168 API request failed: {e}")
         return None
     except Exception as e:
         logging.error(f"Che168 scraper error: {e}")
-        print(f"Che168 scraper error: {e}")
         return None
 
 
-def get_che168_car_specs(infoid, proxies=None):
+def get_che168_car_specs(infoid, session=None):
     """
     Fetch car specifications from Che168 specs API.
     Returns detailed specs including HP.
 
     Args:
         infoid: Car listing ID
-        proxies: Optional proxy configuration dict
+        session: Optional requests.Session (created if not provided)
 
     Returns:
         dict: Specs API response, or None if fetching fails
     """
+    if session is None:
+        session = _create_session()
+
     try:
         params = {
             "infoid": str(infoid),
@@ -195,11 +209,9 @@ def get_che168_car_specs(infoid, proxies=None):
             "_subappid": "",
         }
 
-        response = requests.get(
+        response = session.get(
             CHE168_SPECS_API_URL,
             params=params,
-            headers=CHE168_HEADERS,
-            proxies=proxies,
             timeout=30
         )
 
@@ -445,48 +457,30 @@ def format_gearbox(gearbox_cn):
 
 def get_che168_car_info_with_fallback(infoid):
     """
-    Fetch car info with proxy fallback mechanism.
-    Tries: Oxylabs China → Russian datacenter → direct connection
+    Fetch car info from Che168 API with retry logic.
     Also fetches specs to get HP value.
 
     Args:
         infoid: Car listing ID (infoid)
 
     Returns:
-        dict: Car information with HP, or None if all proxies fail
+        dict: Car information with HP, or None if fetching fails
     """
-    proxy_names = ["Oxylabs China", "Russian datacenter", "direct"]
+    session = _create_session()
+    proxy_url = os.getenv("CHE168_PROXY_URL", "")
+    mode = f"proxy ({proxy_url[:30]}...)" if proxy_url else "direct connection"
+    logging.info(f"Fetching Che168 car info for {infoid} via {mode}")
 
-    for i, proxy in enumerate(CHE168_PROXY_OPTIONS):
-        print(f"Trying Che168 API with {proxy_names[i]} proxy...")
-        logging.info(f"Trying Che168 API with {proxy_names[i]} proxy...")
+    result = get_che168_car_info(infoid, session=session)
+    if result is None:
+        logging.error(f"Failed to fetch Che168 car info for {infoid}")
+        return None
 
-        result = get_che168_car_info(infoid, proxies=proxy)
-        if result is not None:
-            print(f"Success with {proxy_names[i]} proxy")
-            logging.info(f"Che168 success with {proxy_names[i]} proxy")
-
-            # Fetch HP from specs API
-            print(f"Fetching specs for HP...")
-            specs = get_che168_car_specs(infoid, proxies=proxy)
-            hp = extract_hp_from_specs(specs)
-            result["horsepower"] = hp or 200  # Default to 200 if not found
-
-            if hp:
-                print(f"HP extracted: {hp}")
-                logging.info(f"Che168 HP extracted: {hp}")
-            else:
-                print("HP not found in specs, using default: 200")
-                logging.warning("Che168 HP not found, using default: 200")
-
-            return result
-
-        print(f"Failed with {proxy_names[i]} proxy, trying next...")
-        time.sleep(1)
-
-    logging.error("All Che168 proxy options exhausted")
-    print("All Che168 proxy options exhausted")
-    return None
+    specs = get_che168_car_specs(infoid, session=session)
+    hp = extract_hp_from_specs(specs)
+    result["horsepower"] = hp or 200
+    logging.info(f"Che168 car {infoid}: HP={hp or 'default 200'}")
+    return result
 
 
 if __name__ == "__main__":

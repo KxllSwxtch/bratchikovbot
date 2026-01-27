@@ -1,11 +1,15 @@
+import os
 import time
 import requests
 import datetime
 import locale
 import random
+from dotenv import load_dotenv
 
-PROXY_URL = "http://B01vby:GBno0x@45.118.250.2:8000"
-proxies = {"http": PROXY_URL, "https": PROXY_URL}
+load_dotenv()
+
+PROXY_URL = os.getenv("DATACENTER_PROXY_URL", "").strip()
+proxies = {"http": PROXY_URL, "https": PROXY_URL} if PROXY_URL else {}
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
