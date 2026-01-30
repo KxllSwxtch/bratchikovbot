@@ -2809,6 +2809,119 @@ def handle_callback_query(call):
             bot.answer_callback_query(call.id, "Ошибка: данные не найдены")
         return
 
+    # ---- Manual calculation country selection ----
+    elif call.data == "manual_country_korea":
+        bot.answer_callback_query(call.id)
+        try:
+            bot.delete_message(call.message.chat.id, call.message.message_id)
+        except Exception:
+            pass
+        # Show age selection for Korea
+        keyboard = types.ReplyKeyboardMarkup(
+            resize_keyboard=True, one_time_keyboard=True
+        )
+        keyboard.add("До 3 лет", "От 3 до 5 лет")
+        keyboard.add("От 5 до 7 лет", "Более 7 лет")
+        keyboard.add("Главное меню")
+        msg = bot.send_message(
+            call.message.chat.id,
+            "🇰🇷 Выберите возраст автомобиля:",
+            reply_markup=keyboard,
+        )
+        bot.register_next_step_handler(msg, process_car_age)
+        return
+
+    elif call.data == "manual_country_china":
+        bot.answer_callback_query(call.id)
+        try:
+            bot.delete_message(call.message.chat.id, call.message.message_id)
+        except Exception:
+            pass
+        # Show age selection for China
+        keyboard = types.ReplyKeyboardMarkup(
+            resize_keyboard=True, one_time_keyboard=True
+        )
+        keyboard.add("До 3 лет", "От 3 до 5 лет")
+        keyboard.add("От 5 до 7 лет", "Более 7 лет")
+        keyboard.add("Главное меню")
+        msg = bot.send_message(
+            call.message.chat.id,
+            "🇨🇳 Выберите возраст автомобиля:",
+            reply_markup=keyboard,
+        )
+        bot.register_next_step_handler(msg, process_china_car_age)
+        return
+
+    # ---- China manual fuel type selection ----
+    elif call.data.startswith("china_manual_fuel_"):
+        fuel_type = int(call.data.replace("china_manual_fuel_", ""))
+        fuel_type_name = FUEL_TYPE_NAMES.get(fuel_type, "Бензин")
+        user_id = call.from_user.id
+
+        if user_id in user_data and "country" in user_data[user_id] and user_data[user_id]["country"] == "china":
+            user_data[user_id]["fuel_type"] = fuel_type
+            bot.answer_callback_query(call.id, f"Выбран тип: {fuel_type_name}")
+            try:
+                bot.delete_message(call.message.chat.id, call.message.message_id)
+            except Exception:
+                pass
+            # Ask for price in CNY
+            markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+            markup.add(types.KeyboardButton("Главное меню"))
+            msg = bot.send_message(
+                call.message.chat.id,
+                "Введите стоимость автомобиля в юанях (例如: 150000):",
+                reply_markup=markup,
+            )
+            bot.register_next_step_handler(msg, process_china_car_price)
+        else:
+            bot.answer_callback_query(call.id, "Ошибка: данные не найдены")
+        return
+
+    # ---- Detail view for China Manual ----
+    elif call.data == "detail_china_manual":
+        print_message("[ЗАПРОС] ДЕТАЛИЗАЦИЯ РАСЧËТА (КИТАЙ РУЧНОЙ)")
+
+        detail_message = (
+            f"<i>ПЕРВАЯ ЧАСТЬ ОПЛАТЫ</i>:\n\n"
+            f"Задаток (бронь авто + отчёт эксперта):\n<b>¥{format_number(car_data['first_payment_cny'])}</b> | <b>{format_number(int(car_data['first_payment_rub']))} ₽</b>\n\n\n"
+            f"<i>ВТОРАЯ ЧАСТЬ ОПЛАТЫ</i>:\n\n"
+            f"Стоимость авто (минус задаток):\n<b>¥{format_number(car_data['car_price_cny'])}</b> | <b>{format_number(int(car_data['car_price_rub']))} ₽</b>\n\n"
+            f"Расходы по Китаю (дилерский сбор, доставка, оформление):\n<b>¥{format_number(car_data['china_expenses_cny'])}</b> | <b>{format_number(int(car_data['china_expenses_rub']))} ₽</b>\n\n"
+            f"<b>Итого расходов по Китаю</b>:\n<b>¥{format_number(car_data['china_total_cny'])}</b> | <b>{format_number(int(car_data['china_total_rub']))} ₽</b>\n\n\n"
+            f"<i>РАСХОДЫ РОССИЯ</i>:\n\n"
+            f"Единая таможенная ставка:\n<b>{format_number(int(car_data['customs_duty_rub']))} ₽</b>\n\n"
+            f"Таможенное оформление:\n<b>{format_number(int(car_data['customs_fee_rub']))} ₽</b>\n\n"
+            f"Утилизационный сбор:\n<b>{format_number(int(car_data['util_fee_rub']))} ₽</b>\n\n"
+            f"Агентские услуги:\n<b>{format_number(car_data['agent_russia_rub'])} ₽</b>\n\n"
+            f"Брокер:\n<b>{format_number(car_data['broker_russia_rub'])} ₽</b>\n\n"
+            f"СВХ:\n<b>{format_number(car_data['svh_russia_rub'])} ₽</b>\n\n"
+            f"Лаборатория, СБКТС, ЭПТС:\n<b>{format_number(car_data['lab_russia_rub'])} ₽</b>\n\n"
+            f"Комиссия:\n<b>{format_number(car_data['yuri_fee_rub'])} ₽</b>\n\n"
+            f"<b>Итого под ключ</b>:\n<b>¥{format_number(int(car_data['total_cost_cny']))}</b> | <b>{format_number(int(car_data['total_cost_rub']))} ₽</b>\n\n"
+            f"<b>Доставку до вашего города уточняйте у меня:</b>\n"
+            f"▪️ @bratchikov_y (Юрий)\n"
+        )
+
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(
+            types.InlineKeyboardButton(
+                "Рассчитать стоимость другого автомобиля",
+                callback_data="calculate_another_manual",
+            )
+        )
+        keyboard.add(
+            types.InlineKeyboardButton("Главное меню", callback_data="main_menu")
+        )
+
+        bot.send_message(
+            call.message.chat.id,
+            detail_message,
+            parse_mode="HTML",
+            reply_markup=keyboard,
+        )
+        return
+
     # ---- Detail view for China (Che168) ----
     elif call.data.startswith("detail_china"):
         print_message("[ЗАПРОС] ДЕТАЛИЗАЦИЯ РАСЧËТА (КИТАЙ)")
@@ -3064,11 +3177,17 @@ def handle_callback_query(call):
         )
 
     elif call.data == "calculate_another_manual":
-        msg = bot.send_message(
-            call.message.chat.id,
-            "Выберите возраст автомобиля",
+        # Show country selection inline keyboard
+        keyboard = types.InlineKeyboardMarkup(row_width=2)
+        keyboard.add(
+            types.InlineKeyboardButton("🇰🇷 Корея", callback_data="manual_country_korea"),
+            types.InlineKeyboardButton("🇨🇳 Китай", callback_data="manual_country_china"),
         )
-        bot.register_next_step_handler(msg, process_car_age)
+        bot.send_message(
+            call.message.chat.id,
+            "Выберите страну для расчёта:",
+            reply_markup=keyboard,
+        )
 
     elif call.data == "main_menu":
         bot.send_message(call.message.chat.id, "Главное меню", reply_markup=main_menu())
@@ -3404,14 +3523,19 @@ def process_car_price(message):
 
     # Клавиатура с дальнейшими действиями
     keyboard = types.InlineKeyboardMarkup()
-    # keyboard.add(
-    #     types.InlineKeyboardButton(
-    #         "Рассчитать другой автомобиль", callback_data="calculate_another_manual"
-    #     )
-    # )
+    keyboard.add(
+        types.InlineKeyboardButton(
+            "Детали расчёта", callback_data="detail_manual"
+        )
+    )
     keyboard.add(
         types.InlineKeyboardButton(
             "Связаться с менеджером", url="https://t.me/bratchikov_y"
+        )
+    )
+    keyboard.add(
+        types.InlineKeyboardButton(
+            "Рассчитать другой автомобиль", callback_data="calculate_another_manual"
         )
     )
     keyboard.add(types.InlineKeyboardButton("Главное меню", callback_data="main_menu"))
@@ -3426,6 +3550,290 @@ def process_car_price(message):
 
     # Очищаем данные пользователя после расчета
     del user_data[message.chat.id]
+
+
+# ==================== CHINA MANUAL CALCULATION FLOW ====================
+
+
+def process_china_car_age(message):
+    """Обрабатывает выбор возраста автомобиля для ручного расчёта (Китай)."""
+    user_input = message.text.strip()
+
+    age_mapping = {
+        "До 3 лет": "0-3",
+        "От 3 до 5 лет": "3-5",
+        "От 5 до 7 лет": "5-7",
+        "Более 7 лет": "7-0",
+    }
+
+    if user_input == "Главное меню":
+        bot.send_message(message.chat.id, "Главное меню", reply_markup=main_menu())
+        return
+
+    elif user_input not in age_mapping:
+        bot.send_message(message.chat.id, "Пожалуйста, выберите возраст из списка.")
+        return
+
+    # Сохраняем возраст и страну
+    user_data[message.chat.id] = {"car_age": age_mapping[user_input], "country": "china"}
+
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.add(types.KeyboardButton("Главное меню"))
+
+    # Запрашиваем объем двигателя
+    bot.send_message(
+        message.chat.id,
+        "Введите объем двигателя в см³ (例如: 1998):",
+        reply_markup=markup,
+    )
+    bot.register_next_step_handler(message, process_china_engine_volume)
+
+
+def process_china_engine_volume(message):
+    """Обрабатывает ввод объёма двигателя для ручного расчёта (Китай)."""
+    user_input = message.text.strip()
+
+    if user_input == "Главное меню":
+        bot.send_message(message.chat.id, "Главное меню", reply_markup=main_menu())
+        if message.chat.id in user_data:
+            del user_data[message.chat.id]
+        return
+
+    elif not user_input.isdigit():
+        bot.send_message(
+            message.chat.id, "Пожалуйста, введите корректный объем двигателя в см³."
+        )
+        bot.register_next_step_handler(message, process_china_engine_volume)
+        return
+
+    # Сохраняем объем двигателя
+    user_data[message.chat.id]["engine_volume"] = int(user_input)
+
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.add(types.KeyboardButton("Главное меню"))
+
+    # Запрашиваем мощность двигателя
+    bot.send_message(
+        message.chat.id,
+        "Введите мощность двигателя в л.с. (例如: 159):",
+        reply_markup=markup,
+    )
+    bot.register_next_step_handler(message, process_china_hp)
+
+
+def process_china_hp(message):
+    """Обрабатывает ввод мощности двигателя для ручного расчёта (Китай)."""
+    user_input = message.text.strip()
+
+    if user_input == "Главное меню":
+        bot.send_message(message.chat.id, "Главное меню", reply_markup=main_menu())
+        if message.chat.id in user_data:
+            del user_data[message.chat.id]
+        return
+
+    # Валидация ввода HP
+    try:
+        hp = int(user_input)
+        if not (50 <= hp <= 1500):
+            raise ValueError("HP out of range")
+    except ValueError:
+        bot.send_message(
+            message.chat.id,
+            "Пожалуйста, введите корректную мощность в л.с. (число от 50 до 1500).",
+        )
+        bot.register_next_step_handler(message, process_china_hp)
+        return
+
+    # Сохраняем мощность
+    user_data[message.chat.id]["hp"] = hp
+
+    # Show fuel type inline keyboard
+    keyboard = types.InlineKeyboardMarkup(row_width=2)
+    keyboard.add(
+        types.InlineKeyboardButton("Бензин", callback_data="china_manual_fuel_1"),
+        types.InlineKeyboardButton("Дизель", callback_data="china_manual_fuel_2"),
+    )
+    keyboard.add(
+        types.InlineKeyboardButton("Электро", callback_data="china_manual_fuel_4"),
+    )
+    keyboard.add(
+        types.InlineKeyboardButton("Гибрид (посл.)", callback_data="china_manual_fuel_5"),
+        types.InlineKeyboardButton("Гибрид (парал.)", callback_data="china_manual_fuel_6"),
+    )
+
+    bot.send_message(
+        message.chat.id,
+        "Выберите тип двигателя:",
+        reply_markup=keyboard,
+    )
+
+
+def process_china_car_price(message):
+    """Обрабатывает ввод стоимости автомобиля для ручного расчёта (Китай)."""
+    global car_data, cny_rub_rate
+
+    user_input = message.text.strip()
+
+    if user_input == "Главное меню":
+        bot.send_message(message.chat.id, "Главное меню", reply_markup=main_menu())
+        if message.chat.id in user_data:
+            del user_data[message.chat.id]
+        return
+
+    elif not user_input.isdigit():
+        bot.send_message(
+            message.chat.id,
+            "Пожалуйста, введите корректную стоимость автомобиля в юанях.",
+        )
+        bot.register_next_step_handler(message, process_china_car_price)
+        return
+
+    # Check user data exists
+    if message.chat.id not in user_data:
+        bot.send_message(message.chat.id, "Произошла ошибка, попробуйте снова.")
+        return
+
+    if "car_age" not in user_data[message.chat.id]:
+        bot.send_message(message.chat.id, "Произошла ошибка, попробуйте снова.")
+        return
+
+    # Get CNY rate
+    current_cny_rate = get_vtb_cnyrub_rate()
+    if current_cny_rate is None:
+        bot.send_message(message.chat.id, "Ошибка при получении курса юаня. Попробуйте позже.")
+        return
+
+    cny_rub_rate = current_cny_rate
+
+    # Extract user data
+    price_cny = int(user_input)
+    age_group = user_data[message.chat.id]["car_age"]
+    engine_volume = user_data[message.chat.id]["engine_volume"]
+    hp = user_data[message.chat.id].get("hp", 1)
+    fuel_type_code = user_data[message.chat.id].get("fuel_type", 1)
+    fuel_type_name = FUEL_TYPE_NAMES.get(fuel_type_code, "Бензин")
+
+    # Call calcus.ru API with CNY currency
+    response = get_customs_fees_manual(
+        engine_volume,
+        price_cny,
+        age_group,
+        engine_type=fuel_type_code,
+        power=hp,
+        currency="CNY",
+    )
+
+    if not response:
+        bot.send_message(message.chat.id, "Ошибка при расчёте таможенных платежей. Попробуйте снова.")
+        return
+
+    # Extract customs values
+    customs_fee = clean_number(response["sbor"])
+    customs_duty = clean_number(response["tax"])
+    recycling_fee = clean_number(response["util"])
+
+    # Calculate costs using China constants
+    first_payment_rub = CHINA_FIRST_PAYMENT * cny_rub_rate
+    car_price_after_deposit = price_cny - CHINA_FIRST_PAYMENT
+    china_expenses_rub = CHINA_EXPENSES * cny_rub_rate
+
+    china_total_cny = car_price_after_deposit + CHINA_EXPENSES
+    china_total_rub = china_total_cny * cny_rub_rate
+
+    russia_expenses_rub = (
+        customs_duty + customs_fee + recycling_fee +
+        CHINA_AGENT_FEE + CHINA_BROKER_FEE + CHINA_SVH_FEE + CHINA_LAB_FEE
+    )
+
+    total_cost_rub = first_payment_rub + china_total_rub + russia_expenses_rub + CHINA_YURI_FEE
+    total_cost_cny = total_cost_rub / cny_rub_rate
+
+    # Format age for display
+    age_formatted = (
+        "до 3 лет" if age_group == "0-3"
+        else ("от 3 до 5 лет" if age_group == "3-5"
+        else "от 5 до 7 лет" if age_group == "5-7" else "от 7 лет")
+    )
+
+    # Store car_data for detail view
+    car_data["source"] = "china_manual"
+    car_data["first_payment_cny"] = CHINA_FIRST_PAYMENT
+    car_data["first_payment_rub"] = first_payment_rub
+    car_data["car_price_cny"] = car_price_after_deposit
+    car_data["car_price_rub"] = car_price_after_deposit * cny_rub_rate
+    car_data["china_expenses_cny"] = CHINA_EXPENSES
+    car_data["china_expenses_rub"] = china_expenses_rub
+    car_data["china_total_cny"] = china_total_cny
+    car_data["china_total_rub"] = china_total_rub
+    car_data["customs_duty_rub"] = customs_duty
+    car_data["customs_fee_rub"] = customs_fee
+    car_data["util_fee_rub"] = recycling_fee
+    car_data["agent_russia_rub"] = CHINA_AGENT_FEE
+    car_data["broker_russia_rub"] = CHINA_BROKER_FEE
+    car_data["svh_russia_rub"] = CHINA_SVH_FEE
+    car_data["lab_russia_rub"] = CHINA_LAB_FEE
+    car_data["yuri_fee_rub"] = CHINA_YURI_FEE
+    car_data["total_cost_rub"] = total_cost_rub
+    car_data["total_cost_cny"] = total_cost_cny
+
+    # Format result message
+    result_message = (
+        f"🗓 Возраст: {age_formatted}\n"
+        f"🔧 Объём двигателя: {format_number(engine_volume)} cc\n"
+        f"🐎 Мощность: {hp} л.с.\n"
+        f"⛽ Тип двигателя: {fuel_type_name}\n\n"
+        f"💵 <b>Курс Юаня к Рублю: {cny_rub_rate:.2f} ₽</b>\n\n"
+        f"🇨🇳 Платежи в Китае\n"
+        f"▪️ Стоимость автомобиля: <b>¥{format_number(price_cny)}</b> | <b>{format_number(int(price_cny * cny_rub_rate))} ₽</b>\n"
+        f"▪️ Расходы по Китаю (дилерский сбор, доставка, оформление): <b>¥{format_number(CHINA_EXPENSES)}</b> | <b>{format_number(int(CHINA_EXPENSES * cny_rub_rate))} ₽</b>\n\n\n"
+        f"🇷🇺 Платежи в России\n"
+        f"▪️ <b>Единая таможенная ставка</b>: <b>{format_number(customs_duty)} ₽</b>\n"
+        f"▪️ <b>Таможенное оформление</b>: <b>{format_number(customs_fee)} ₽</b>\n"
+        f"▪️ <b>Утилизационный сбор</b>: <b>{format_number(recycling_fee)} ₽</b>\n\n"
+        f"▪️ Агентские услуги: <b>{format_number(CHINA_AGENT_FEE)} ₽</b>\n"
+        f"▪️ Брокер: <b>{format_number(CHINA_BROKER_FEE)} ₽</b>\n"
+        f"▪️ СВХ: <b>{format_number(CHINA_SVH_FEE)} ₽</b>\n"
+        f"▪️ Лаборатория: <b>{format_number(CHINA_LAB_FEE)} ₽</b>\n"
+        f"▪️ Моя комиссия: <b>{format_number(CHINA_YURI_FEE)} ₽</b>\n\n"
+        f"🟰 Итого под ключ: <b>¥{format_number(int(total_cost_cny))}</b> | <b>{format_number(int(total_cost_rub))} ₽</b>\n\n"
+        "Если данное авто попадает под санкции, пожалуйста уточните возможность отправки в вашу страну у меня:\n"
+        f"▪️ @bratchikov_y (Юрий)\n\n"
+        "🔗 <a href='https://t.me/bratchikov_cars'>Официальный телеграм канал</a>\n"
+    )
+
+    # Create keyboard
+    keyboard = types.InlineKeyboardMarkup()
+    keyboard.add(
+        types.InlineKeyboardButton("Детали расчёта", callback_data="detail_china_manual")
+    )
+    keyboard.add(
+        types.InlineKeyboardButton(
+            "Связаться с менеджером", url="https://t.me/bratchikov_y"
+        )
+    )
+    keyboard.add(
+        types.InlineKeyboardButton(
+            "Рассчитать другой автомобиль",
+            callback_data="calculate_another_manual",
+        )
+    )
+    keyboard.add(
+        types.InlineKeyboardButton("Главное меню", callback_data="main_menu")
+    )
+
+    bot.send_message(
+        message.chat.id,
+        result_message,
+        parse_mode="HTML",
+        reply_markup=keyboard,
+    )
+
+    # Cleanup user data
+    if message.chat.id in user_data:
+        del user_data[message.chat.id]
+
+
+# ==================== END CHINA MANUAL CALCULATION FLOW ====================
 
 
 @bot.message_handler(commands=["users"])
@@ -3790,20 +4198,17 @@ def handle_message(message):
         )
 
     elif user_message == "Ручной расчёт":
-        # Запрашиваем возраст автомобиля
-        keyboard = types.ReplyKeyboardMarkup(
-            resize_keyboard=True, one_time_keyboard=True
+        # Show country selection inline keyboard
+        keyboard = types.InlineKeyboardMarkup(row_width=2)
+        keyboard.add(
+            types.InlineKeyboardButton("🇰🇷 Корея", callback_data="manual_country_korea"),
+            types.InlineKeyboardButton("🇨🇳 Китай", callback_data="manual_country_china"),
         )
-        keyboard.add("До 3 лет", "От 3 до 5 лет")
-        keyboard.add("От 5 до 7 лет", "Более 7 лет")
-        keyboard.add("Главное меню")
-
         bot.send_message(
             message.chat.id,
-            "Выберите возраст автомобиля:",
+            "Выберите страну для расчёта:",
             reply_markup=keyboard,
         )
-        bot.register_next_step_handler(message, process_car_age)
 
     elif user_message == "Вопрос/Ответ":
         show_faq(message)
