@@ -1,9 +1,10 @@
-import os
-import time
-import requests
 import datetime
 import locale
+import os
 import random
+import time
+
+import requests
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -28,7 +29,7 @@ def get_pan_auto_data(car_id):
     Возвращает dict с hp, costs и характеристиками авто при успехе.
     Возвращает None при 404 или ошибке.
     """
-    url = f"https://zefir.pan-auto.ru/api/cars/{car_id}/"
+    url = f"https://zefir.pan-auto.ru/api/korea/{car_id}/"
     headers = {
         "Accept": "*/*",
         "Accept-Language": "en,ru;q=0.9",
@@ -52,7 +53,9 @@ def get_pan_auto_data(car_id):
             "hp": data.get("hp"),
             "manufacturer": data.get("manufacturer", {}).get("translation"),
             "model": data.get("model", {}).get("translation"),
-            "generation": data.get("generation", {}).get("translation") if data.get("generation") else None,
+            "generation": data.get("generation", {}).get("translation")
+            if data.get("generation")
+            else None,
             "displacement": data.get("displacement"),
             "clearance_cost": costs_rub.get("clearanceCost"),
             "customs_duty": costs_rub.get("customsDuty"),
@@ -104,7 +107,9 @@ def calculate_age(year, month):
         return "7-0"
 
 
-def get_customs_fees_manual(engine_volume, car_price, car_age, engine_type=1, power=1, currency="KRW"):
+def get_customs_fees_manual(
+    engine_volume, car_price, car_age, engine_type=1, power=1, currency="KRW"
+):
     """
     Запрашивает расчёт таможенных платежей с сайта calcus.ru.
     :param engine_volume: Объём двигателя (куб. см)
@@ -144,7 +149,14 @@ def get_customs_fees_manual(engine_volume, car_price, car_age, engine_type=1, po
 
 
 def get_customs_fees(
-    engine_volume, car_price, car_year, car_month, engine_type=1, owner_type=1, power=1, currency="KRW"
+    engine_volume,
+    car_price,
+    car_year,
+    car_month,
+    engine_type=1,
+    owner_type=1,
+    power=1,
+    currency="KRW",
 ):
     """
     Запрашивает расчёт таможенных платежей с сайта calcus.ru.
