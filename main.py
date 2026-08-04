@@ -78,11 +78,6 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 load_dotenv()
 bot_token = os.getenv("BOT_TOKEN")
 bot = telebot.TeleBot(bot_token)
-try:
-    bot.set_webhook(url="")
-    time.sleep(2)  # Даем время на применение изменений
-except Exception as e:
-    print(f"Ошибка при удалении webhook: {e}")
 
 
 # Set locale for number formatting
@@ -4294,7 +4289,6 @@ def handle_message(message):
 logger = logging.getLogger(__name__)
 
 
-# Полное удаление webhook перед началом работы
 if __name__ == "__main__":
     set_bot_commands()
     create_tables()
@@ -4302,43 +4296,14 @@ if __name__ == "__main__":
     # Настройка обхода блокировок
     telebot.apihelper.RETRY_ON_ERROR = True
 
-    def delete_webhook():
-        try:
-            # Метод 1: через API напрямую с IP
-            requests.get(
-                f"https://api.telegram.org/bot{bot_token}/deleteWebhook?drop_pending_updates=true",
-                timeout=10,
-            )
-            time.sleep(2)
+    # Бот работает через long polling, поэтому webhook должен быть снят.
+    # Достаточно одного вызова при старте: на VPS всегда запущен ровно один
+    # экземпляр (systemd), в отличие от Heroku, где дино могли пересекаться.
+    try:
+        bot.remove_webhook()
+    except Exception as e:
+        print(f"Ошибка при удалении webhook: {e}")
 
-            # Метод 2: через библиотеку
-            bot.remove_webhook()
-            time.sleep(2)
-
-            # Метод 3: устанавливаем пустой webhook
-            bot.set_webhook(url="")
-            time.sleep(2)
-
-            print("Webhook удален всеми методами")
-        except Exception as e:
-            print(f"Ошибка при удалении webhook: {e}")
-
-    # Первоначальное удаление webhook
-    delete_webhook()
-
-    # Запускаем периодическое удаление webhook каждые 10 минут
-    import threading
-
-    def webhook_deletion_scheduler():
-        while True:
-            time.sleep(100)  # 100 секунд
-            print("Выполняется плановое удаление webhook...")
-            delete_webhook()
-
-    # Запускаем планировщик в отдельном потоке
-    webhook_thread = threading.Thread(target=webhook_deletion_scheduler)
-    webhook_thread.daemon = True  # Поток завершится вместе с основной программой
-    webhook_thread.start()
-
-    # Запускаем бота
-    bot.polling(none_stop=True, interval=1, timeout=30)
+    # interval=0: при long polling (timeout=30) пауза между вызовами getUpdates
+    # не нужна — она добавляла до секунды задержки на каждое сообщение.
+    bot.polling(none_stop=True, interval=0, timeout=30)

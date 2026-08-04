@@ -6,6 +6,13 @@ __pycache__/
 # Environment variables
 .env
 .env.*
+!.env.example
+
+# Runtime state (кастомный курс, задаётся админом через бота)
+custom_rate.json
+
+# Локальные заметки с доступами — не коммитить
+ssh.txt
 
 # Virtual environment
 venv/
