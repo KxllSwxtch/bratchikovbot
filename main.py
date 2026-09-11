@@ -1954,17 +1954,17 @@ def calculate_cost(link, message, user_type):
         total_cost_krw = (
             price_krw  # Цена авто в вонах
             + 2000000  # Расходы по Корее
-            + customs_fee * get_actual_rub_to_krw_rate()  # Таможенный сбор
-            + customs_duty * get_actual_rub_to_krw_rate()  # Таможенная пошлина
-            + recycling_fee * get_actual_rub_to_krw_rate()  # Утильсбор
-            + 15000 * get_actual_rub_to_krw_rate()  # Брокер РФ
-            + 30000 * get_actual_rub_to_krw_rate()  # Временная регистрация
-            + 45000 * get_actual_rub_to_krw_rate()  # СВХ
-            + 25000 * get_actual_rub_to_krw_rate()  # Лаборатория
-            + 2000 * get_actual_rub_to_krw_rate()  # Коносамент
-            + 2000 * get_actual_rub_to_krw_rate()  # Экспертиза
-            + 8000 * get_actual_rub_to_krw_rate()  # Перегон из СВХ
-            + 120000 * get_actual_rub_to_krw_rate()  # Услуга Юрия
+            + customs_fee / get_actual_rub_to_krw_rate()  # Таможенный сбор
+            + customs_duty / get_actual_rub_to_krw_rate()  # Таможенная пошлина
+            + recycling_fee / get_actual_rub_to_krw_rate()  # Утильсбор
+            + 15000 / get_actual_rub_to_krw_rate()  # Брокер РФ
+            + 30000 / get_actual_rub_to_krw_rate()  # Временная регистрация
+            + 45000 / get_actual_rub_to_krw_rate()  # СВХ
+            + 25000 / get_actual_rub_to_krw_rate()  # Лаборатория
+            + 2000 / get_actual_rub_to_krw_rate()  # Коносамент
+            + 2000 / get_actual_rub_to_krw_rate()  # Экспертиза
+            + 8000 / get_actual_rub_to_krw_rate()  # Перегон из СВХ
+            + 120000 / get_actual_rub_to_krw_rate()  # Услуга Юрия
             + (
                 20000 / get_actual_rub_to_krw_rate()
                 if car_engine_displacement > 2000
@@ -4016,17 +4016,17 @@ def handle_hp_input(message):
     total_cost_krw = (
         price_krw
         + 2000000
-        + customs_fee * get_actual_rub_to_krw_rate()
-        + customs_duty * get_actual_rub_to_krw_rate()
-        + recycling_fee * get_actual_rub_to_krw_rate()
-        + 15000 * get_actual_rub_to_krw_rate()
-        + 30000 * get_actual_rub_to_krw_rate()
-        + 45000 * get_actual_rub_to_krw_rate()
-        + 25000 * get_actual_rub_to_krw_rate()
-        + 2000 * get_actual_rub_to_krw_rate()
-        + 2000 * get_actual_rub_to_krw_rate()
-        + 8000 * get_actual_rub_to_krw_rate()
-        + 120000 * get_actual_rub_to_krw_rate()
+        + customs_fee / get_actual_rub_to_krw_rate()
+        + customs_duty / get_actual_rub_to_krw_rate()
+        + recycling_fee / get_actual_rub_to_krw_rate()
+        + 15000 / get_actual_rub_to_krw_rate()
+        + 30000 / get_actual_rub_to_krw_rate()
+        + 45000 / get_actual_rub_to_krw_rate()
+        + 25000 / get_actual_rub_to_krw_rate()
+        + 2000 / get_actual_rub_to_krw_rate()
+        + 2000 / get_actual_rub_to_krw_rate()
+        + 8000 / get_actual_rub_to_krw_rate()
+        + 120000 / get_actual_rub_to_krw_rate()
         + (20000 / get_actual_rub_to_krw_rate() if car_engine_displacement > 2000 else 0)
     )
 
