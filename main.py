@@ -976,6 +976,34 @@ def get_usdt_to_krw_rate():
     return float(krw_rate) + 8
 
 
+# Файл с последним успешно полученным курсом ЦБ. Нужен как страховка:
+# если API ЦБ недоступен, вчерашний реальный курс честнее устаревшей константы.
+LAST_KNOWN_RATE_FILE = "last_known_krw_rate.json"
+
+# Курс на самый первый запуск — когда ЦБ недоступен и кэша ещё нет
+DEFAULT_KRW_RATE = 0.0630
+
+
+def save_last_known_rate(rate):
+    try:
+        with open(LAST_KNOWN_RATE_FILE, "w") as f:
+            json.dump({"rate": rate, "saved_at": datetime.now().isoformat()}, f)
+    except Exception as e:
+        print(f"Не удалось сохранить последний курс KRW: {e}")
+
+
+def load_last_known_rate():
+    try:
+        if os.path.exists(LAST_KNOWN_RATE_FILE):
+            with open(LAST_KNOWN_RATE_FILE, "r") as f:
+                rate = json.load(f).get("rate")
+                if rate and float(rate) > 0:
+                    return float(rate)
+    except Exception as e:
+        print(f"Не удалось прочитать последний курс KRW: {e}")
+    return None
+
+
 def get_rub_to_krw_rate():
     global rub_to_krw_rate, custom_rub_to_krw_rate
 
@@ -992,9 +1020,10 @@ def get_rub_to_krw_rate():
 
         krw_info = data["Valute"]["KRW"]
         krw_nominal = krw_info["Nominal"]  # 1000
-        krw_value = krw_info["Value"] + 5
+        krw_value = krw_info["Value"]  # курс ЦБ как есть, без наценки
         krw_rate = float(krw_value) / float(krw_nominal)
         rub_to_krw_rate = krw_rate
+        save_last_known_rate(krw_rate)
     except requests.RequestException as e:
         print(f"Ошибка при получении курса RUB → KRW: {e}")
         return None
@@ -1108,10 +1137,17 @@ def get_actual_rub_to_krw_rate():
     if rub_to_krw_rate is None or rub_to_krw_rate <= 0:
         get_rub_to_krw_rate()
 
-        # Если курс все еще не определен, используем значение по умолчанию
+        # Если курс все еще не определен, берём последний успешно полученный
         if rub_to_krw_rate is None or rub_to_krw_rate <= 0:
+            cached_rate = load_last_known_rate()
+            if cached_rate:
+                print(
+                    f"ВНИМАНИЕ: ЦБ недоступен, используется последний известный курс: {cached_rate}"
+                )
+                return cached_rate
+
             print("ВНИМАНИЕ: Используется значение курса по умолчанию!")
-            return 0.0737  # Значение по умолчанию
+            return DEFAULT_KRW_RATE
 
     # Иначе используем стандартный курс
     return rub_to_krw_rate
