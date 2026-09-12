@@ -14,6 +14,11 @@ VTB_API_URL = "https://www.vtb.ru/api/currencyrates/table/lite"
 # CBR API fallback
 CBR_API_URL = "https://www.cbr-xml-daily.ru/daily_json.js"
 
+# С продакшн-сервера соединение с vtb.ru не устанавливается вообще, поэтому
+# ждём недолго и быстро уходим на резервный путь ЦБ. Рабочий API отвечает
+# заметно быстрее 3 секунд, так что при восстановлении доступа ничего не сломается.
+VTB_TIMEOUT = 3
+
 # Request headers for VTB API
 VTB_HEADERS = {
     "Accept": "application/json, text/plain, */*",
@@ -49,7 +54,7 @@ def get_vtb_cnyrub_rate():
             VTB_API_URL,
             params=params,
             headers=VTB_HEADERS,
-            timeout=15
+            timeout=VTB_TIMEOUT
         )
 
         if response.status_code == 200:
@@ -142,7 +147,7 @@ def get_all_vtb_rates():
             VTB_API_URL,
             params=params,
             headers=VTB_HEADERS,
-            timeout=15
+            timeout=VTB_TIMEOUT
         )
 
         if response.status_code == 200:

@@ -9,7 +9,7 @@ import urllib.parse
 import time
 
 
-from datetime import datetime
+from datetime import datetime, timezone
 from apscheduler.schedulers.background import BackgroundScheduler
 from bs4 import BeautifulSoup
 from io import BytesIO
@@ -1169,6 +1169,36 @@ def get_currency_rates():
     )
 
     return rates_text
+
+
+# Курсы кэшируются в глобальных переменных, поэтому без периодического
+# обновления они замораживались до перезапуска процесса — а бот на VPS
+# живёт неделями.
+RATES_REFRESH_MINUTES = 60
+
+
+def refresh_rates():
+    """Обновляет курсы вона и юаня. Вызывается планировщиком раз в час."""
+    global cny_rub_rate
+
+    # KRW: функция сама уважает кастомный курс менеджера, а при ошибке сети
+    # оставляет прежнее значение, а не обнуляет его
+    get_rub_to_krw_rate()
+
+    # CNY: перезаписываем только успешный результат. Иначе сетевой сбой стёр бы
+    # рабочий курс, и расчёты по Китаю сломались бы до следующего часа.
+    cny = get_vtb_cnyrub_rate()
+    if cny:
+        cny_rub_rate = cny
+    else:
+        print("Курс юаня обновить не удалось, оставляю прежний")
+
+    krw_note = " (кастомный, задан менеджером)" if custom_rub_to_krw_rate is not None else ""
+    cny_text = f"{cny_rub_rate:.4f} ₽" if cny_rub_rate else "нет данных"
+    print(
+        f"Курсы обновлены: KRW → RUB {get_actual_rub_to_krw_rate():.5f} ₽{krw_note}, "
+        f"CNY → RUB {cny_text}"
+    )
 
 
 # Функция для получения курсов валют с API
@@ -4340,6 +4370,29 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Ошибка при удалении webhook: {e}")
 
-    # interval=0: при long polling (timeout=30) пауза между вызовами getUpdates
-    # не нужна — она добавляла до секунды задержки на каждое сообщение.
-    bot.polling(none_stop=True, interval=0, timeout=30)
+    # Без планировщика курсы брались один раз и не менялись до перезапуска.
+    scheduler = BackgroundScheduler(timezone="UTC")
+    scheduler.add_job(
+        refresh_rates,
+        "interval",
+        minutes=RATES_REFRESH_MINUTES,
+        # Первый прогон сразу, но в фоновом потоке: запуск бота не ждёт
+        # ответа ЦБ и таймаута ВТБ. Время обязательно с таймзоной: наивное
+        # datetime.now() планировщик истолкует как UTC и на машине с другой
+        # зоной первый прогон уедет на несколько часов вперёд.
+        next_run_time=datetime.now(timezone.utc),
+        id="refresh_rates",
+        # Запросы к ЦБ и ВТБ идут с таймаутами: если прогон затянулся,
+        # следующий не должен стартовать поверх него и копиться очередью.
+        max_instances=1,
+        coalesce=True,
+    )
+    scheduler.start()
+    print(f"Планировщик запущен: курсы обновляются раз в {RATES_REFRESH_MINUTES} мин")
+
+    try:
+        # interval=0: при long polling (timeout=30) пауза между вызовами getUpdates
+        # не нужна — она добавляла до секунды задержки на каждое сообщение.
+        bot.polling(none_stop=True, interval=0, timeout=30)
+    finally:
+        scheduler.shutdown(wait=False)
