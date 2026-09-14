@@ -249,7 +249,8 @@ class ApiGetTests(unittest.TestCase):
         ]
         with mock.patch.object(che, "_create_session", return_value=session), self.assertLogs(level="WARNING"):
             car = che.get_global_car_info("59826201")
-        self.assertIsNone(car["horsepower"])
+        # Without specs, power and displacement come from the engine string "1.5T 170hp L4"
+        self.assertEqual(car["horsepower"], 170)
         self.assertEqual(car["displacement_cc"], 1500)
 
 

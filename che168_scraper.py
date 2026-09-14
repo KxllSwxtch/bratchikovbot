@@ -292,8 +292,31 @@ def select_power_hp(fuel_code, spec, engine):
     Returns:
         int horsepower, or None if it can't be determined (the bot then asks the user)
     """
-    # TODO: implement the per-fuel power rules
-    raise NotImplementedError
+    if fuel_code in (4, 5):
+        # Electric and range extender: the wheels are driven by the motor only
+        candidates = [
+            _spec_number(spec, SPEC_MOTOR_PS),
+            _spec_number(spec, SPEC_MOTOR_PS_BASIC),
+            _kw_to_hp(_spec_number(spec, SPEC_MOTOR_KW)),
+        ]
+    elif fuel_code == 6:
+        # Parallel hybrid: combined system power; engine + motor peaks only as a last resort
+        engine_ps = _spec_number(spec, SPEC_ENGINE_PS)
+        motor_ps = _spec_number(spec, SPEC_MOTOR_PS)
+        candidates = [
+            _spec_number(spec, SPEC_COMBINED_PS),
+            _kw_to_hp(_spec_number(spec, SPEC_COMBINED_KW)),
+            engine_ps + motor_ps if engine_ps and motor_ps else None,
+        ]
+    else:
+        # Petrol/diesel (including 48V mild hybrids): engine power
+        hp_match = re.search(r"(\d+)\s*hp", engine or "", re.IGNORECASE)
+        candidates = [
+            _spec_number(spec, SPEC_ENGINE_PS),
+            _kw_to_hp(_spec_number(spec, SPEC_ENGINE_KW)),
+            float(hp_match.group(1)) if hp_match else None,
+        ]
+    return next((int(round(value)) for value in candidates if value), None)
 
 
 def _displacement_cc(spec, engine):
