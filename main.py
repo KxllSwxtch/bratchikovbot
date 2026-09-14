@@ -1,3 +1,4 @@
+import html
 import json
 import telebot
 import os
@@ -45,9 +46,15 @@ from utils import (
 )
 from get_vtb_cnyrub_rate import get_vtb_cnyrub_rate
 from che168_scraper import (
-    get_che168_car_info_with_fallback,
-    extract_car_id_from_che168_url,
-    is_che168_url,
+    get_global_car_info,
+    extract_global_car_id,
+    is_che168_global_url,
+    extract_legacy_car_id,
+    build_global_link,
+    Che168Blocked,
+    Che168DataError,
+    Che168Error,
+    Che168NotFound,
     format_mileage as format_che168_mileage,
     format_gearbox as format_che168_gearbox,
 )
@@ -279,7 +286,12 @@ def add_favorite_car(call):
         "user_id": user_id,
         "car_id": car_data.get("car_id", "Нет ID"),
         "title": car_data.get("name", "Неизвестно"),
-        "price": f"₩{format_number(car_data.get('car_price', 0))}",
+        # Every flow sets car_data["link"], so it tells which market the last car is from
+        "price": (
+            f"¥{format_number(car_data.get('car_price', 0))}"
+            if "che168.com" in str(car_data.get("link", ""))
+            else f"₩{format_number(car_data.get('car_price', 0))}"
+        ),
         "link": car_data.get("link", "Нет ссылки"),
         "year": car_data.get("year", "Неизвестно"),
         "month": car_data.get("month", "Неизвестно"),
@@ -2249,9 +2261,15 @@ def calculate_cost(link, message, user_type):
 
 # ==================== CHINA (CHE168) CALCULATION ====================
 
+# Accepted horsepower range (micro EVs are ~27 л.с.)
+CHINA_HP_MIN = 20
+CHINA_HP_MAX = 1500
+VALID_CHINA_FUEL_TYPES = {1, 2, 4, 5, 6}
+
+
 def calculate_china_cost(link, message, user_type):
     """
-    Calculate import cost for a car from Che168.com (China).
+    Calculate import cost for a car from global.che168.com (China).
     """
     global car_data, cny_rub_rate
 
@@ -2271,6 +2289,12 @@ def calculate_china_cost(link, message, user_type):
         )
         return
 
+    # Extract car ID from URL
+    car_id = extract_global_car_id(link)
+    if not car_id:
+        send_error_message(message, "🚫 Не удалось извлечь ID автомобиля из ссылки.")
+        return
+
     # Send processing message
     bot.send_message(
         user_id,
@@ -2279,46 +2303,68 @@ def calculate_china_cost(link, message, user_type):
     )
     processing_message = bot.send_message(user_id, "Обрабатываю данные... ⏳")
 
-    # Extract car ID from URL
-    car_id = extract_car_id_from_che168_url(link)
-    if not car_id:
-        bot.delete_message(user_id, processing_message.message_id)
-        send_error_message(message, "🚫 Не удалось извлечь ID автомобиля из ссылки.")
+    # Fetch car info from the global.che168.com API
+    try:
+        car_info = get_global_car_info(car_id)
+    except Che168NotFound:
+        send_error_message(
+            message,
+            "🚫 Автомобиль не найден на global.che168.com — возможно, он уже снят с продажи.",
+        )
         return
-
-    # Fetch car info from Che168 API (with proxy fallback)
-    car_info = get_che168_car_info_with_fallback(car_id)
-    if not car_info:
-        bot.delete_message(user_id, processing_message.message_id)
-        send_error_message(message, "🚫 Не удалось получить данные об автомобиле. Попробуйте позже.")
+    except Che168DataError as e:
+        send_error_message(
+            message,
+            f"🚫 В объявлении не хватает данных для расчёта ({e}). "
+            "Воспользуйтесь «Ручной расчёт».",
+        )
         return
+    except Che168Blocked:
+        send_error_message(
+            message,
+            "🚫 global.che168.com временно ограничил доступ. "
+            "Попробуйте позже или воспользуйтесь «Ручной расчёт».",
+        )
+        return
+    except Exception as e:
+        if not isinstance(e, Che168Error):
+            logging.exception(f"Unexpected error while loading che168 car {car_id}")
+        send_error_message(
+            message,
+            "🚫 Не удалось получить данные с global.che168.com. "
+            "Попробуйте позже или воспользуйтесь «Ручной расчёт».",
+        )
+        return
+    finally:
+        try:
+            bot.delete_message(user_id, processing_message.message_id)
+        except Exception:
+            pass
 
     # Extract data from car_info
     price_cny = car_info["price_cny"]
+    price_usd = car_info["price_usd"]
     displacement_cc = car_info["displacement_cc"]
-    year = car_info["first_reg_year"]
-    month = car_info["first_reg_month"]
+    year = car_info["age_year"]
+    month = car_info["age_month"]
     car_name = car_info["car_name"]
     fuel_type_code = car_info["fuel_type_code"]
     fuel_type_ru = car_info["fuel_type_ru"]
-    mileage_km = car_info["mileage_km"]
     city_name = car_info["city_name"]
     photos = car_info["photos"]
-    gearbox = car_info.get("gearbox", "")
     horsepower = car_info.get("horsepower")
-
-    # Delete processing message
-    bot.delete_message(user_id, processing_message.message_id)
 
     # Store pending data
     pending_china_hp_requests[user_id] = {
         "car_info": car_info,
         "car_id": car_id,
-        "link": link,
+        "link": car_info["link"],
         "price_cny": price_cny,
+        "price_usd": price_usd,
         "displacement_cc": displacement_cc,
         "year": year,
         "month": month,
+        "age_source": car_info["age_source"],
         "car_name": car_name,
         "fuel_type_code": fuel_type_code,
         "fuel_type_ru": fuel_type_ru,
@@ -2327,21 +2373,24 @@ def calculate_china_cost(link, message, user_type):
         "user_type": user_type,
     }
 
+    summary = (
+        f"🚗 {car_name}\n"
+        f"📍 {city_name}\n"
+        f"💰 ¥{price_cny:,} (${price_usd:,} на сайте)\n"
+    )
+
     # Check if HP was successfully extracted and is valid
-    if horsepower and 50 <= horsepower <= 1000:
+    if horsepower and CHINA_HP_MIN <= horsepower <= CHINA_HP_MAX:
         pending_china_hp_requests[user_id]["hp"] = horsepower
         logging.info(f"Using auto-extracted HP: {horsepower} for user {user_id}")
 
         # Check if fuel type is also valid
-        valid_fuel_types = {1, 2, 4, 5, 6}
-        if fuel_type_code in valid_fuel_types:
+        if fuel_type_code in VALID_CHINA_FUEL_TYPES:
             logging.info(f"Using auto-extracted fuel type: {fuel_type_code} ({fuel_type_ru}) for user {user_id}")
 
             bot.send_message(
                 user_id,
-                f"🚗 {car_name}\n"
-                f"📍 {city_name}\n"
-                f"💰 ¥{price_cny:,}\n"
+                f"{summary}"
                 f"🐎 {horsepower} л.с.\n"
                 f"⛽ {fuel_type_ru}\n\n"
                 "⏳ Выполняю расчёт..."
@@ -2352,9 +2401,7 @@ def calculate_china_cost(link, message, user_type):
             keyboard = create_fuel_type_keyboard()
             bot.send_message(
                 user_id,
-                f"🚗 {car_name}\n"
-                f"📍 {city_name}\n"
-                f"💰 ¥{price_cny:,}\n"
+                f"{summary}"
                 f"🐎 {horsepower} л.с.\n\n"
                 "Выберите тип двигателя:",
                 reply_markup=keyboard
@@ -2362,9 +2409,7 @@ def calculate_china_cost(link, message, user_type):
     else:
         bot.send_message(
             user_id,
-            f"🚗 {car_name}\n"
-            f"📍 {city_name}\n"
-            f"💰 ¥{price_cny:,}\n\n"
+            f"{summary}\n"
             "Пожалуйста, введите мощность двигателя в л.с. (например: 340):",
         )
         bot.register_next_step_handler(message, process_china_hp_input)
@@ -2373,12 +2418,24 @@ def calculate_china_cost(link, message, user_type):
 def process_china_hp_input(message):
     """Handle HP input for China car calculation."""
     user_id = message.chat.id
-    user_input = message.text.strip()
+    user_input = (message.text or "").strip()
 
-    if not user_input.isdigit() or not (50 <= int(user_input) <= 1000):
+    # The user left the prompt (command, link or menu button): drop the pending
+    # car and let the regular handlers process the message.
+    if (
+        user_input.startswith("/")
+        or re.search(r"https?://", user_input)
+        or user_input in {CALCULATE_CAR_TEXT, "Ручной расчёт", "Вопрос/Ответ", "Написать менеджеру",
+                          "О нас", "Telegram-канал", "YouTube", "Физ. лицо", "Юр. лицо", "Главное меню"}
+    ):
+        pending_china_hp_requests.pop(user_id, None)
+        bot.process_new_messages([message])
+        return
+
+    if not user_input.isdigit() or not (CHINA_HP_MIN <= int(user_input) <= CHINA_HP_MAX):
         bot.send_message(
             user_id,
-            "Пожалуйста, введите корректное значение мощности (от 50 до 1000 л.с.):"
+            f"Пожалуйста, введите корректное значение мощности (от {CHINA_HP_MIN} до {CHINA_HP_MAX} л.с.):"
         )
         bot.register_next_step_handler(message, process_china_hp_input)
         return
@@ -2390,6 +2447,11 @@ def process_china_hp_input(message):
         return
 
     pending_china_hp_requests[user_id]["hp"] = hp
+
+    # Fuel type already known from the listing: no need to ask
+    if pending_china_hp_requests[user_id].get("fuel_type_code") in VALID_CHINA_FUEL_TYPES:
+        complete_china_calculation(user_id, message)
+        return
 
     keyboard = create_fuel_type_keyboard()
     bot.send_message(
@@ -2414,12 +2476,28 @@ def complete_china_calculation(user_id, message):
     year = pending_data["year"]
     month = pending_data["month"]
     car_name = pending_data["car_name"]
-    fuel_type_code = pending_data.get("fuel_type", pending_data.get("fuel_type_code", 1))
+    fuel_type_code = pending_data.get("fuel_type") or pending_data.get("fuel_type_code")
     hp = pending_data["hp"]
     photos = pending_data.get("photos", [])
     link = pending_data.get("link", "")
     user_type = pending_data.get("user_type", 1)
+    age_source = pending_data.get("age_source", "registration")
     fuel_type_name = FUEL_TYPE_NAMES.get(fuel_type_code, "Бензин")
+
+    if fuel_type_code not in VALID_CHINA_FUEL_TYPES:
+        bot.send_message(user_id, "Ошибка: не выбран тип двигателя. Попробуйте снова.")
+        return
+
+    # Electric cars have no displacement; everything else needs it for the customs duty
+    if fuel_type_code == 4:
+        displacement_cc = 0
+    elif not displacement_cc:
+        bot.send_message(
+            user_id,
+            "🚫 Не удалось определить объём двигателя из объявления. Воспользуйтесь «Ручной расчёт».",
+            reply_markup=main_menu(),
+        )
+        return
 
     # Call calcus.ru API with CNY currency
     response = get_customs_fees(
@@ -2496,15 +2574,31 @@ def complete_china_calculation(user_id, message):
     # Format mileage
     car_info = pending_data.get("car_info", {})
     mileage_km = car_info.get("mileage_km", 0)
-    gearbox = car_info.get("gearbox", "")
+    gearbox = format_che168_gearbox(car_info.get("gearbox", ""))
+
+    # Fields read by add_favorite_car (otherwise it picks up the last Korean car)
+    car_data["year"] = year
+    car_data["month"] = month
+    car_data["mileage"] = format_che168_mileage(mileage_km)
+    car_data["fuel"] = fuel_type_name
+    car_data["engine_volume"] = displacement_cc
+    car_data["transmission"] = gearbox
+    car_data["car_price"] = price_cny
+    car_data["total_cost_usd"] = 0
+    car_data["total_cost_krw"] = 0
+
+    date_label = "дата выпуска" if age_source == "manufacture" else "дата регистрации"
+    engine_volume_line = (
+        f"🔧 Объём двигателя: {format_number(displacement_cc)} cc\n" if fuel_type_code != 4 else ""
+    )
 
     result_message = (
-        f"🚗 {car_name}\n\n"
-        f"🗓 Возраст: {age_formatted} (дата регистрации: {month:02d}/{year})\n"
+        f"🚗 {html.escape(car_name)}\n\n"
+        f"🗓 Возраст: {age_formatted} ({date_label}: {month:02d}/{year})\n"
         f"🛣 Пробег: {format_che168_mileage(mileage_km)}\n"
-        f"🔧 Объём двигателя: {format_number(displacement_cc)} cc\n"
+        f"{engine_volume_line}"
         f"🐎 Мощность: {hp} л.с.\n"
-        f"⚙️ КПП: {format_che168_gearbox(gearbox)}\n"
+        f"⚙️ КПП: {html.escape(gearbox)}\n"
         f"⛽ Тип двигателя: {fuel_type_name}\n\n"
         f"💵 <b>Курс Юаня к Рублю: {cny_rub_rate:.2f} ₽</b>\n\n"
         f"🇨🇳 Платежи в Китае\n"
@@ -2555,9 +2649,9 @@ def complete_china_calculation(user_id, message):
         )
     )
 
-    # Send photos if available
+    # Send photos if available. A photo problem must never block the result message.
     if photos:
-        media_group = []
+        downloaded = []
         for photo_data in photos[:10]:
             try:
                 photo_url = photo_data if isinstance(photo_data, str) else photo_data.get("url", "")
@@ -2565,13 +2659,20 @@ def complete_china_calculation(user_id, message):
                     continue
                 resp = requests.get(photo_url, timeout=10)
                 if resp.status_code == 200:
-                    photo = BytesIO(resp.content)
-                    media_group.append(types.InputMediaPhoto(photo))
+                    downloaded.append(BytesIO(resp.content))
             except Exception as e:
-                print(f"Error loading photo: {e}")
+                logging.warning(f"Error loading che168 photo: {e}")
 
-        if media_group:
-            bot.send_media_group(message.chat.id, media_group)
+        try:
+            # Telegram media groups need 2-10 items
+            if len(downloaded) == 1:
+                bot.send_photo(message.chat.id, downloaded[0])
+            elif downloaded:
+                bot.send_media_group(
+                    message.chat.id, [types.InputMediaPhoto(photo) for photo in downloaded]
+                )
+        except Exception as e:
+            logging.warning(f"Error sending che168 photos: {e}")
 
     bot.send_message(
         message.chat.id,
@@ -3215,14 +3316,14 @@ def handle_callback_query(call):
         user_type_map[call.message.chat.id] = 1
         bot.send_message(
             call.message.chat.id,
-            "Пожалуйста, введите ссылку на автомобиль с сайта (encar.com, kbchachacha.com, kcar.com, che168.com)",
+            "Пожалуйста, введите ссылку на автомобиль с сайта (encar.com, kbchachacha.com, kcar.com, global.che168.com)",
         )
 
     elif call.data == "user_type_legal":
         user_type_map[call.message.chat.id] = 2
         bot.send_message(
             call.message.chat.id,
-            "Пожалуйста, введите ссылку на автомобиль с сайта (encar.com, kbchachacha.com, kcar.com, che168.com)",
+            "Пожалуйста, введите ссылку на автомобиль с сайта (encar.com, kbchachacha.com, kcar.com, global.che168.com)",
         )
 
     elif call.data == "calculate_another":
@@ -4254,7 +4355,7 @@ def handle_message(message):
 
         bot.send_message(
             message.chat.id,
-            "Пожалуйста, введите ссылку на автомобиль с одного из сайтов (encar.com, kbchachacha.com, kcar.com, che168.com):",
+            "Пожалуйста, введите ссылку на автомобиль с одного из сайтов (encar.com, kbchachacha.com, kcar.com, global.che168.com):",
             reply_markup=types.ReplyKeyboardRemove(),  # Убираем клавиатуру
         )
 
@@ -4296,7 +4397,7 @@ def handle_message(message):
         else:
             calculate_cost(user_message, message, user_type)
 
-    elif is_che168_url(user_message):
+    elif is_che168_global_url(user_message):
         user_type = user_type_map.get(message.from_user.id)
 
         if user_type is None:
@@ -4314,6 +4415,15 @@ def handle_message(message):
             )
         else:
             calculate_china_cost(user_message, message, user_type)
+
+    elif extract_legacy_car_id(user_message):
+        legacy_car_id = extract_legacy_car_id(user_message)
+        bot.send_message(
+            message.chat.id,
+            "Для Китая мы принимаем только ссылки с global.che168.com.\n\n"
+            f"Этот автомобиль на global.che168.com: {build_global_link(legacy_car_id)}\n\n"
+            "Если объявление открывается, отправьте мне эту ссылку.",
+        )
 
     elif user_message == "Написать менеджеру":
         managers_list = [
@@ -4348,7 +4458,7 @@ def handle_message(message):
     else:
         bot.send_message(
             message.chat.id,
-            "Пожалуйста, введите ссылку на автомобиль с сайта (encar.com, kbchachacha.com, kcar.com, che168.com)",
+            "Пожалуйста, введите ссылку на автомобиль с сайта (encar.com, kbchachacha.com, kcar.com, global.che168.com)",
         )
 
 

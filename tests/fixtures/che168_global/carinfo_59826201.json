@@ -1,0 +1,58 @@
+{
+ "returncode": 0,
+ "message": "成功",
+ "result": {
+  "infoid": 59826201,
+  "brandid": 36,
+  "brandname": " Mercedes-Benz",
+  "seriesid": 588,
+  "seriesname": " Mercedes-Benz C-Class",
+  "specid": 55683,
+  "specname": " 2022 Facelift C 200 L Sport",
+  "dealeid": 686663,
+  "carname": " Mercedes-Benz Mercedes-Benz C-Class 2022 Facelift C 200 L Sport",
+  "regdate": "2022.01",
+  "producedate": "2022-01-01 00:00:00",
+  "yearname": "2022.02",
+  "mileage": "70000",
+  "price": "15510",
+  "fuelname": "Gasoline + 48V Mild Hybrid System",
+  "engine": "1.5T 170hp L4",
+  "gearbox": "9-speed automatic transmission",
+  "steering": "Left",
+  "cname": "shanghai",
+  "drivingmode": "Rear-Wheel Drive (RWD)",
+  "level": "Mid-size car",
+  "setcount": "5",
+  "structuredoor": "4",
+  "structure": "Sedan",
+  "color": "White",
+  "dimension": "4882*1820*1456",
+  "curbweight": "1700",
+  "catepiclist": [
+   {
+    "title": "",
+    "list": [
+     "https://erscglobal2.autoimg.cn/escimg/auto/g34/M02/DC/C6/1400x0_c42_autohomecar__ChtpWGqc9CqAIYswAAm5rr1ADsc741.jpg.webp",
+     "https://erscglobal2.autoimg.cn/escimg/auto/g34/M05/DF/F0/1400x0_c42_autohomecar__ChxpWGqc9CuAPVEgAAkwY-1tdcY991.jpg.webp",
+     "https://erscglobal2.autoimg.cn/escimg/auto/g34/M06/DF/F0/1400x0_c42_autohomecar__ChxpWGqc9CuAKFOSAAbLYYDaFmk643.jpg.webp",
+     "https://erscglobal2.autoimg.cn/escimg/auto/g34/M0B/DC/C6/1400x0_c42_autohomecar__ChtpWGqc9CuAUxIhAAYdSMdPdbM640.jpg.webp",
+     "https://erscglobal2.autoimg.cn/escimg/auto/g33/M05/E2/8D/1400x0_c42_autohomecar__Chto52qc9CyACbbKAAZg6nWe7Vg578.jpg.webp",
+     "https://erscglobal2.autoimg.cn/escimg/auto/g34/M07/DF/E5/1400x0_c42_autohomecar__ChxpV2qc9CyAX3bhAAT2mKQkGnQ238.jpg.webp",
+     "https://erscglobal2.autoimg.cn/escimg/auto/g34/M08/DF/F0/1400x0_c42_autohomecar__ChxpWGqc9C2AQeAJAAYQZCZtlZ0321.jpg.webp",
+     "https://erscglobal2.autoimg.cn/escimg/auto/g34/M03/DF/E5/1400x0_c42_autohomecar__ChxpV2qc9C2ARjZhAAZ8gLuOpMU319.jpg.webp"
+    ]
+   }
+  ],
+  "paramkey": "%2BwKdkQC7toZcH8dvyfsfjr2AT8Uex7tP",
+  "report_url": "",
+  "certification_status": 10,
+  "export_fee": "400",
+  "port_fee": "530",
+  "vincode": "LE4A********35365",
+  "wechat_url": "https://work.weixin.qq.com/kfid/kfcda8d46e941310dc9",
+  "whatsapp_url": "https://wa.me/8618601141633?text=Hello%21+I%27m+interested+in+this+vehicle.%0A%0ALink%3A+https%3A%2F%2Fglobal.che168.com%2Fdetail%2F59826201%3Fsession_id%3D00000000-0000-4000-8000-000000000000%26fromsource%3D0",
+  "remark": "",
+  "manufacturedate": "2022.01"
+ }
+}

@@ -1,0 +1,755 @@
+{
+ "returncode": 0,
+ "message": "成功",
+ "result": {
+  "specid": 64906,
+  "paramtypeitems": [
+   {
+    "name": "Basic Specifications",
+    "paramitems": [
+     {
+      "name": "Model Name",
+      "value": "Mercedes-Benz C-Class New Energy 2024 C 350 eL",
+      "id": 113,
+      "sublist": []
+     },
+     {
+      "name": "Manufacturer Suggested Retail Price (¥)",
+      "value": "406500",
+      "id": 112,
+      "sublist": []
+     },
+     {
+      "name": "Manufacturer",
+      "value": "Beijing Benz",
+      "id": 111,
+      "sublist": []
+     },
+     {
+      "name": "Class",
+      "value": "Mid-size car",
+      "id": 116,
+      "sublist": []
+     },
+     {
+      "name": "Energy Type",
+      "value": "Plug-in Hybrid",
+      "id": 55,
+      "sublist": []
+     },
+     {
+      "name": "Emission Standard",
+      "value": "China VI",
+      "id": 61,
+      "sublist": []
+     },
+     {
+      "name": "Launch Date",
+      "value": "2023.09",
+      "id": 109,
+      "sublist": []
+     },
+     {
+      "name": "WLTC Pure Electric Range (km)",
+      "value": "105",
+      "id": 135,
+      "sublist": []
+     },
+     {
+      "name": "Fast Charging Time (hours)",
+      "value": "0.35",
+      "id": 79,
+      "sublist": []
+     },
+     {
+      "name": "Slow Charging Time (hours)",
+      "value": "3",
+      "id": 81,
+      "sublist": []
+     },
+     {
+      "name": "Fast Charge Capacity Range (%)",
+      "value": "10-80",
+      "id": 80,
+      "sublist": []
+     },
+     {
+      "name": "Maximum power (kW)",
+      "value": "230",
+      "id": 50,
+      "sublist": []
+     },
+     {
+      "name": "Max Torque (N·m)",
+      "value": "440",
+      "id": 52,
+      "sublist": []
+     },
+     {
+      "name": "Abbreviation",
+      "value": "9-speed automatic transmission",
+      "id": 108,
+      "sublist": []
+     },
+     {
+      "name": "Body structure",
+      "value": "--",
+      "id": 24,
+      "sublist": []
+     },
+     {
+      "name": "Engine",
+      "value": "2.0T 204HP L4",
+      "id": 115,
+      "sublist": []
+     },
+     {
+      "name": "Electric Motor (Ps)",
+      "value": "129",
+      "id": 114,
+      "sublist": []
+     },
+     {
+      "name": "Length*Width*Height (mm)",
+      "value": "4882*1820*1450",
+      "id": 110,
+      "sublist": []
+     },
+     {
+      "name": "Official 0-100km/h acceleration (s)",
+      "value": "6.9",
+      "id": 2,
+      "sublist": []
+     },
+     {
+      "name": "Top speed (km/h)",
+      "value": "235",
+      "id": 1,
+      "sublist": []
+     },
+     {
+      "name": "WLTC Combined Fuel Consumption (L/100km)",
+      "value": "1.27",
+      "id": 102,
+      "sublist": []
+     },
+     {
+      "name": "Fuel Consumption with Discharged Battery (L/100km)",
+      "value": "6.46",
+      "id": 8,
+      "sublist": []
+     },
+     {
+      "name": "Electricity Equivalent Fuel Consumption (L/100km)",
+      "value": "2.16",
+      "id": 136,
+      "sublist": []
+     },
+     {
+      "name": "Vehicle warranty",
+      "value": "--",
+      "id": 12,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "3 years unlimited mileage",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Curb weight (kg)",
+      "value": "2130",
+      "id": 3,
+      "sublist": []
+     },
+     {
+      "name": "Maximum Gross Weight (kg)",
+      "value": "2655",
+      "id": 137,
+      "sublist": []
+     }
+    ]
+   },
+   {
+    "name": "Body",
+    "paramitems": [
+     {
+      "name": "Length (mm)",
+      "value": "4882",
+      "id": 14,
+      "sublist": []
+     },
+     {
+      "name": "Width (mm)",
+      "value": "1820",
+      "id": 23,
+      "sublist": []
+     },
+     {
+      "name": "Height (mm)",
+      "value": "1450",
+      "id": 16,
+      "sublist": []
+     },
+     {
+      "name": "Wheelbase (mm)",
+      "value": "2954",
+      "id": 17,
+      "sublist": []
+     },
+     {
+      "name": "Front track (mm)",
+      "value": "1589",
+      "id": 18,
+      "sublist": []
+     },
+     {
+      "name": "Rear track (mm)",
+      "value": "1566",
+      "id": 19,
+      "sublist": []
+     },
+     {
+      "name": "Approach angle (°)",
+      "value": "15",
+      "id": 31,
+      "sublist": []
+     },
+     {
+      "name": "Departure angle (°)",
+      "value": "17",
+      "id": 32,
+      "sublist": []
+     },
+     {
+      "name": "Body structure",
+      "value": "Sedan",
+      "id": 24,
+      "sublist": []
+     },
+     {
+      "name": "Door Opening Method",
+      "value": "Conventional Door",
+      "id": 131,
+      "sublist": []
+     },
+     {
+      "name": "Number of doors",
+      "value": "--",
+      "id": 27,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "4",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Seating capacity",
+      "value": "--",
+      "id": 28,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "5",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Fuel tank capacity (L)",
+      "value": "50",
+      "id": 29,
+      "sublist": []
+     },
+     {
+      "name": "Trunk capacity (L)",
+      "value": "315",
+      "id": 30,
+      "sublist": []
+     },
+     {
+      "name": "Drag Coefficient (Cd)",
+      "value": "-",
+      "id": 99,
+      "sublist": []
+     }
+    ]
+   },
+   {
+    "name": "Engine",
+    "paramitems": [
+     {
+      "name": "Engine model",
+      "value": "254 920",
+      "id": 37,
+      "sublist": []
+     },
+     {
+      "name": "Displacement (mL)",
+      "value": "1999",
+      "id": 39,
+      "sublist": []
+     },
+     {
+      "name": "Displacement (L)",
+      "value": "2.0",
+      "id": 40,
+      "sublist": []
+     },
+     {
+      "name": "Intake form",
+      "value": "Turbocharged",
+      "id": 41,
+      "sublist": []
+     },
+     {
+      "name": "Engine Layout",
+      "value": "Longitudinal",
+      "id": 107,
+      "sublist": []
+     },
+     {
+      "name": "Cylinder arrangement",
+      "value": "L",
+      "id": 42,
+      "sublist": []
+     },
+     {
+      "name": "Number of cylinders",
+      "value": "4",
+      "id": 43,
+      "sublist": []
+     },
+     {
+      "name": "Valves per cylinder",
+      "value": "4",
+      "id": 44,
+      "sublist": []
+     },
+     {
+      "name": "Valvetrain",
+      "value": "DOHC",
+      "id": 46,
+      "sublist": []
+     },
+     {
+      "name": "Maximum horsepower (Ps)",
+      "value": "204",
+      "id": 49,
+      "sublist": []
+     },
+     {
+      "name": "Maximum power (kW)",
+      "value": "150",
+      "id": 50,
+      "sublist": []
+     },
+     {
+      "name": "Max Power RPM",
+      "value": "6100",
+      "id": 51,
+      "sublist": []
+     },
+     {
+      "name": "Max Torque (N·m)",
+      "value": "320",
+      "id": 52,
+      "sublist": []
+     },
+     {
+      "name": "Max Torque RPM",
+      "value": "2000-4000",
+      "id": 53,
+      "sublist": []
+     },
+     {
+      "name": "Maximum Net Power (kW)",
+      "value": "150",
+      "id": 106,
+      "sublist": []
+     },
+     {
+      "name": "Energy Type",
+      "value": "Plug-in Hybrid",
+      "id": 55,
+      "sublist": []
+     },
+     {
+      "name": "Fuel Grade",
+      "value": "95 Octane",
+      "id": 57,
+      "sublist": []
+     },
+     {
+      "name": "Fuel Supply System",
+      "value": "Direct Injection",
+      "id": 58,
+      "sublist": []
+     },
+     {
+      "name": "Cylinder Head Material",
+      "value": "Aluminum Alloy",
+      "id": 59,
+      "sublist": []
+     },
+     {
+      "name": "Cylinder Block Material",
+      "value": "Aluminum Alloy",
+      "id": 60,
+      "sublist": []
+     },
+     {
+      "name": "Emission Standard",
+      "value": "China VI",
+      "id": 61,
+      "sublist": []
+     }
+    ]
+   },
+   {
+    "name": "Electric Motor",
+    "paramitems": [
+     {
+      "name": "Motor Type",
+      "value": "Permanent Magnet/Synchronous",
+      "id": 62,
+      "sublist": []
+     },
+     {
+      "name": "Total Motor Power (kW)",
+      "value": "95",
+      "id": 63,
+      "sublist": []
+     },
+     {
+      "name": "Total Electric Motor Horsepower (Ps)",
+      "value": "129",
+      "id": 120,
+      "sublist": []
+     },
+     {
+      "name": "Total Motor Torque (N·m)",
+      "value": "440",
+      "id": 65,
+      "sublist": []
+     },
+     {
+      "name": "Front Motor Max Power (kW)",
+      "value": "95",
+      "id": 66,
+      "sublist": []
+     },
+     {
+      "name": "Front Motor Max Torque (N·m)",
+      "value": "440",
+      "id": 67,
+      "sublist": []
+     },
+     {
+      "name": "System Combined Power (kW)",
+      "value": "230",
+      "id": 70,
+      "sublist": []
+     },
+     {
+      "name": "System Combined Power (Ps)",
+      "value": "313",
+      "id": 121,
+      "sublist": []
+     },
+     {
+      "name": "System Combined Torque (N·m)",
+      "value": "440",
+      "id": 71,
+      "sublist": []
+     },
+     {
+      "name": "Number of Drive Motors",
+      "value": "Single Motor",
+      "id": 72,
+      "sublist": []
+     },
+     {
+      "name": "Motor Layout",
+      "value": "Front-mounted",
+      "id": 73,
+      "sublist": []
+     },
+     {
+      "name": "Three-Electric System Warranty",
+      "value": "--",
+      "id": 78,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "8 years or 120,000 km",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "Battery & Charging",
+    "paramitems": [
+     {
+      "name": "Battery Type",
+      "value": "--",
+      "id": 74,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "Ternary Lithium Battery",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Battery cell brand",
+      "value": "--",
+      "id": 157,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "Mercedes-Benz",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Battery Cooling Method",
+      "value": "Liquid cooling",
+      "id": 133,
+      "sublist": []
+     },
+     {
+      "name": "WLTC Pure Electric Range (km)",
+      "value": "105",
+      "id": 135,
+      "sublist": []
+     },
+     {
+      "name": "Battery Energy (kWh)",
+      "value": "25.4",
+      "id": 76,
+      "sublist": []
+     },
+     {
+      "name": "Power Consumption (kWh/100km)",
+      "value": "23.1",
+      "id": 77,
+      "sublist": []
+     },
+     {
+      "name": "Fast Charging",
+      "value": "Optional",
+      "id": 124,
+      "sublist": []
+     },
+     {
+      "name": "Fast Charging Power (kW)",
+      "value": "55",
+      "id": 125,
+      "sublist": []
+     },
+     {
+      "name": "Fast Charging Time (hours)",
+      "value": "0.35",
+      "id": 79,
+      "sublist": []
+     },
+     {
+      "name": "Fast Charge Capacity Range (%)",
+      "value": "10-80",
+      "id": 80,
+      "sublist": []
+     },
+     {
+      "name": "Slow Charging Time (hours)",
+      "value": "3",
+      "id": 81,
+      "sublist": []
+     }
+    ]
+   },
+   {
+    "name": "Transmission",
+    "paramitems": [
+     {
+      "name": "Abbreviation",
+      "value": "9-speed automatic transmission",
+      "id": 108,
+      "sublist": []
+     },
+     {
+      "name": "Number of Gears",
+      "value": "9",
+      "id": 84,
+      "sublist": []
+     },
+     {
+      "name": "Transmission Type",
+      "value": "Semi-Automatic Transmission (AT)",
+      "id": 85,
+      "sublist": []
+     }
+    ]
+   },
+   {
+    "name": "Chassis & Steering",
+    "paramitems": [
+     {
+      "name": "Drive Type",
+      "value": "--",
+      "id": 86,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "Rear-Wheel Drive (RWD)",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Front Suspension Type",
+      "value": "--",
+      "id": 89,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "Multi-Link Independent Suspension",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Rear Suspension Type",
+      "value": "--",
+      "id": 90,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "Multi-Link Independent Suspension",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Power Steering Type",
+      "value": "--",
+      "id": 91,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "Electric power steering",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Body Structure",
+      "value": "Unibody",
+      "id": 92,
+      "sublist": []
+     }
+    ]
+   },
+   {
+    "name": "Wheels & Brakes",
+    "paramitems": [
+     {
+      "name": "Front Brake Type",
+      "value": "--",
+      "id": 93,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "Ventilated disc",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Rear Brake Type",
+      "value": "--",
+      "id": 94,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "Ventilated disc",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Parking Brake Type",
+      "value": "--",
+      "id": 95,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "Electronic parking brake",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Front Tire Specification",
+      "value": "--",
+      "id": 96,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "225/45 R18",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Rear Tire Specification",
+      "value": "--",
+      "id": 97,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "255/40 R18",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Spare Tire Specification",
+      "value": "--",
+      "id": 98,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "None",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ }
+}

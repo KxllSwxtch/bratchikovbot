@@ -67,3 +67,6 @@ prompt.md
 
 # Runtime state (последний известный курс KRW, кэш на случай недоступности ЦБ)
 last_known_krw_rate.json
+
+# Снимки страниц Playwright MCP
+.playwright-mcp/

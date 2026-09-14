@@ -39,6 +39,14 @@ This project is a Telegram bot for the company "Импорт без пробле
 4. User sends a link to a car on Encar.
 5. Bot replies with detailed information about the car.
 
+## China Flow (global.che168.com)
+
+- Only `https://global.che168.com/{locale}/detail/{infoid}` links are calculated; old `m.che168.com` links get a reply with the equivalent global link.
+- `che168_scraper.py` calls the JSON API at `globalapi.che168.com/api/v1` (`carinfo/{infoid}` and `specparam?specid=`). The HTML pages are behind a Tencent EdgeOne captcha, so never scrape them.
+- The API gives prices in USD. The site converts from yuan at a fixed rate (`CHE168_CNY_PER_USD`, default 6.575), so the bot recovers the exact yuan price and calculates in CNY as before. A log warning "site CNY/USD rate may have changed" means the rate needs re-deriving.
+- Car age comes from `manufacturedate`, falling back to `regdate`. Horsepower depends on fuel type: engine Ps for petrol/diesel, motor Ps for EV and range extender, combined system Ps for hybrids. It is never defaulted; if missing, the bot asks the user.
+- Tests: `venv/bin/python -m unittest discover -s tests -v` (fixtures are real API responses).
+
 ## Customization
 
 - **Channel username**: Set the `CHANNEL_USERNAME` variable in `main.py` to your Telegram channel.

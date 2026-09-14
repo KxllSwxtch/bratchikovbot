@@ -140,7 +140,7 @@ def get_customs_fees_manual(
     }
 
     try:
-        response = requests.post(url, data=payload, headers=headers)
+        response = requests.post(url, data=payload, headers=headers, timeout=15)
         response.raise_for_status()
         return response.json()
     except requests.RequestException as e:
@@ -182,8 +182,6 @@ def get_customs_fees(
         "curr": currency,  # Валюта
     }
 
-    print(engine_volume, car_price, car_year, car_month, engine_type, owner_type, power)
-
     headers = {
         "User-Agent": random.choice(USER_AGENTS),
         "Referer": "https://calcus.ru/",
@@ -192,7 +190,7 @@ def get_customs_fees(
     }
 
     try:
-        response = requests.post(url, data=payload, headers=headers)
+        response = requests.post(url, data=payload, headers=headers, timeout=15)
         response.raise_for_status()
         return response.json()
     except requests.RequestException as e:

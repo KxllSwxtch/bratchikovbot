@@ -1,61 +1,92 @@
 """
-Che168.com Car Scraper Module
+Che168 Global client.
 
-Fetches car listing data from Che168.com (Chinese used car marketplace)
-using their mobile API endpoint.
+Fetches car listings from global.che168.com (Autohome's export marketplace)
+through its public JSON API. The HTML pages sit behind a Tencent EdgeOne
+captcha, but globalapi.che168.com answers plain requests without cookies
+or request signing.
 """
 
+import logging
 import os
 import re
+import uuid
+
 import requests
-import logging
-from datetime import datetime
-from urllib3.util.retry import Retry
-from requests.adapters import HTTPAdapter
 from dotenv import load_dotenv
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 load_dotenv()
 
-# Che168 API endpoints
-CHE168_API_URL = "https://apiuscdt.che168.com/apic/v2/car/getcarinfo"
-CHE168_SPECS_API_URL = "https://apiuscdt.che168.com/api/v1/car/getparamtypeitems"
+GLOBAL_SITE = "https://global.che168.com"
+GLOBAL_API_BASE = "https://globalapi.che168.com/api/v1"
+APPID = "global.pc"
+DEVICE_ID = str(uuid.uuid4())
 
-# Request headers for Che168 API
-CHE168_HEADERS = {
-    "Accept": "*/*",
+# (connect, read). Kept short: TeleBot runs only 2 worker threads, so a stalled
+# request freezes the bot for everyone.
+REQUEST_TIMEOUT = (5, 10)
+
+# The site shows the domestic CNY price converted to USD at its own fixed rate
+# and rounded to $10. On 9 cars checked against m.che168.com, 6.575 turned every
+# USD price back into the exact yuan price. To re-derive: divide the ¥ price
+# from m.che168.com by the $ price on global.che168.com for 2-3 cars.
+DEFAULT_CNY_PER_USD = float(os.getenv("CHE168_CNY_PER_USD", "6.575"))
+KW_TO_HP = 1.35962
+
+# specparam item ids (the same in every language)
+SPEC_DISPLACEMENT_ML = 39   # Displacement (mL)
+SPEC_DISPLACEMENT_L = 40    # Displacement (L)
+SPEC_ENGINE_PS = 49         # Maximum horsepower (Ps)
+SPEC_ENGINE_KW = 50         # Maximum power (kW)
+SPEC_MOTOR_KW = 63          # Total Motor Power (kW)
+SPEC_COMBINED_KW = 70       # System Combined Power (kW)
+SPEC_MOTOR_PS_BASIC = 114   # Electric Motor (Ps), "Basic Specifications" group
+SPEC_MOTOR_PS = 120         # Total Electric Motor Horsepower (Ps)
+SPEC_COMBINED_PS = 121      # System Combined Power (Ps)
+
+HEADERS = {
+    "Accept": "application/json, text/plain, */*",
     "Accept-Language": "en,ru;q=0.9",
-    "Origin": "https://m.che168.com",
-    "Referer": "https://m.che168.com/",
-    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "sec-ch-ua": '"Google Chrome";v="143", "Chromium";v="143", "Not A(Brand";v="24"',
-    "sec-ch-ua-mobile": "?0",
-    "sec-ch-ua-platform": '"macOS"',
-    "Sec-Fetch-Dest": "empty",
-    "Sec-Fetch-Mode": "cors",
-    "Sec-Fetch-Site": "same-site",
+    "Origin": GLOBAL_SITE,
+    "Referer": f"{GLOBAL_SITE}/",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
 }
 
-# Fuel type mapping from Chinese to internal codes
-FUEL_TYPE_MAPPING = {
-    "汽油": 1,      # Gasoline
-    "柴油": 2,      # Diesel
-    "纯电动": 4,    # Electric
-    "电动": 4,      # Electric
-    "插电混动": 5,  # Plug-in hybrid (series)
-    "油电混合": 6,  # Hybrid (parallel)
-    "增程式": 5,    # Range extender (series hybrid)
-}
+# Body fragments of anti-bot pages (EdgeOne captcha, JS challenge)
+BLOCK_MARKERS = ("TEOCaptcha", "Security Verification", "solveChallenge")
 
-# Fuel type display names in Russian
-FUEL_TYPE_NAMES_RU = {
-    "汽油": "Бензин",
-    "柴油": "Дизель",
-    "纯电动": "Электро",
-    "电动": "Электро",
-    "插电混动": "Гибрид (подзарядка)",
-    "油电混合": "Гибрид",
-    "增程式": "Гибрид (рейндж-экстендер)",
-}
+GLOBAL_DETAIL_RE = re.compile(
+    r"https?://global\.che168\.com/(?:[a-z]{2}(?:-[a-z]{2})?/)?detail/(\d{6,12})",
+    re.IGNORECASE,
+)
+LEGACY_URL_RE = re.compile(r"https?://(?:www\.|m\.|i\.)?che168\.com/\S+", re.IGNORECASE)
+
+_MISSING = {"", "-", "--"}
+
+
+class Che168Error(Exception):
+    """The car could not be loaded from che168."""
+
+
+class Che168NotFound(Che168Error):
+    """The listing does not exist on global.che168.com (sold or removed)."""
+
+
+class Che168Blocked(Che168Error):
+    """The API answered with an anti-bot page instead of JSON."""
+
+
+class Che168Unavailable(Che168Error):
+    """Network or HTTP failure, or an unexpected API response."""
+
+
+class Che168DataError(Che168Error):
+    """The listing lacks a value the calculation needs."""
+
+
+# ==================== HTTP ====================
 
 def _get_proxy_config():
     """Return proxy config from CHE168_PROXY_URL env var, or None for direct connection."""
@@ -68,356 +99,335 @@ def _get_proxy_config():
 def _create_session():
     """Create a requests session with retry logic and optional proxy."""
     session = requests.Session()
-    retry = Retry(total=3, backoff_factor=1, status_forcelist=[500, 502, 503, 504])
+    retry = Retry(
+        total=2,
+        backoff_factor=0.5,
+        status_forcelist=[429, 500, 502, 503, 504],
+        allowed_methods=["GET"],
+    )
     adapter = HTTPAdapter(max_retries=retry)
     session.mount("http://", adapter)
     session.mount("https://", adapter)
-    session.headers.update(CHE168_HEADERS)
+    session.headers.update(HEADERS)
     proxy = _get_proxy_config()
     if proxy:
         session.proxies.update(proxy)
     return session
 
 
-def extract_car_id_from_che168_url(url):
+def _api_get(session, path, params=None):
     """
-    Extract car ID (infoid) from Che168 URL.
+    GET a globalapi.che168.com endpoint and return its `result`.
 
-    Supported URL formats:
-    - https://m.che168.com/dealer/657408/56913158.html
-    - https://www.che168.com/usedcar/56913158.html
-    - https://m.che168.com/v/56913158.html
+    Raises:
+        Che168NotFound: returncode 101 (invalid listing id)
+        Che168Blocked: anti-bot page instead of JSON
+        Che168Unavailable: network/HTTP error or unexpected returncode
+    """
+    query = {
+        "_appid": APPID,
+        "deviceid": DEVICE_ID,
+        "language": "en",
+        "fromsource": "0",
+        **(params or {}),
+    }
+
+    try:
+        response = session.get(f"{GLOBAL_API_BASE}/{path}", params=query, timeout=REQUEST_TIMEOUT)
+    except requests.RequestException as e:
+        raise Che168Unavailable(f"{path}: {e}") from e
+
+    content_type = response.headers.get("Content-Type", "")
+    if "json" not in content_type:
+        body = response.text
+        logging.warning(
+            "che168 %s: non-JSON response (HTTP %s, server=%s): %r",
+            path, response.status_code, response.headers.get("Server"), body[:100],
+        )
+        if response.status_code == 200 or any(marker in body for marker in BLOCK_MARKERS):
+            raise Che168Blocked(f"{path}: anti-bot page instead of JSON")
+        raise Che168Unavailable(f"{path}: HTTP {response.status_code}")
+
+    if response.status_code != 200:
+        raise Che168Unavailable(f"{path}: HTTP {response.status_code}")
+
+    try:
+        data = response.json()
+    except ValueError as e:
+        raise Che168Unavailable(f"{path}: invalid JSON") from e
+
+    returncode = data.get("returncode")
+    if returncode == 101:
+        raise Che168NotFound(f"{path}: {data.get('message')}")
+    if returncode != 0:
+        raise Che168Unavailable(f"{path}: returncode={returncode} {data.get('message')}")
+    return data.get("result")
+
+
+# ==================== URLs ====================
+
+def extract_global_car_id(text):
+    """Car id from a global.che168.com detail link anywhere in text, or None."""
+    match = GLOBAL_DETAIL_RE.search(text or "")
+    return match.group(1) if match else None
+
+
+def is_che168_global_url(text):
+    """True if text contains a global.che168.com detail link."""
+    return extract_global_car_id(text) is not None
+
+
+def extract_legacy_car_id(text):
+    """
+    Car id from an old www./m./i.che168.com link, or None.
+
+    Only used to point the user to the same car on global.che168.com.
+    """
+    match = LEGACY_URL_RE.search(text or "")
+    if not match:
+        return None
+    url = match.group(0)
+    found = re.search(r"[?&]infoid=(\d{6,12})", url) or re.search(r"/(\d{7,12})(?:\.html)?/?(?:[?#]|$)", url)
+    return found.group(1) if found else None
+
+
+def build_global_link(car_id):
+    """Canonical Russian-locale link to a listing."""
+    return f"{GLOBAL_SITE}/ru/detail/{car_id}"
+
+
+# ==================== Parsing ====================
+
+def _num(value):
+    """Leading number of an API string ("150/218" -> 150.0, "--" -> None)."""
+    match = re.match(r"\s*(\d+(?:\.\d+)?)", str(value if value is not None else ""))
+    return float(match.group(1)) if match else None
+
+
+def _spec_values(spec_result):
+    """
+    Flatten a specparam result into {item_id: value}.
+
+    The same id can appear in several groups; the first non-empty value wins.
+    A "--" value with a sublist (e.g. drive type) takes the first subvalue.
+    """
+    values = {}
+    for group in (spec_result or {}).get("paramtypeitems") or []:
+        for item in group.get("paramitems") or []:
+            item_id = item.get("id")
+            if item_id in values:
+                continue
+            value = str(item.get("value") or "").strip()
+            if value in _MISSING:
+                sublist = item.get("sublist") or []
+                value = str(sublist[0].get("subvalue") or "").strip() if sublist else ""
+            if value not in _MISSING:
+                values[item_id] = value
+    return values
+
+
+def _spec_number(spec, item_id):
+    """Numeric spec value, or None."""
+    return _num(spec.get(item_id))
+
+
+def _kw_to_hp(kw):
+    """Convert kW to metric horsepower (л.с.), or None."""
+    return round(kw * KW_TO_HP) if kw else None
+
+
+def _parse_year_month(value):
+    """(year, month) from "2022.01" or "2022-01-01 00:00:00", or None."""
+    match = re.match(r"\s*(\d{4})[.\-/](\d{1,2})", str(value or ""))
+    if not match:
+        return None
+    year, month = int(match.group(1)), int(match.group(2))
+    if year < 1950 or not 1 <= month <= 12:
+        return None
+    return year, month
+
+
+def _clean_car_name(name):
+    """Strip and drop a repeated leading brand ("Benz Benz C-Class" -> "Benz C-Class")."""
+    name = re.sub(r"\s+", " ", name or "").strip()
+    return re.sub(r"^(.+?) \1 ", r"\1 ", name)
+
+
+def map_energy_type(fuel_name):
+    """
+    Map an English fuelname to (calcus engine code, Russian name).
+
+    calcus.ru codes: 1 petrol, 2 diesel, 4 electric, 5 series hybrid, 6 parallel hybrid.
+    Returns (None, original name) for unknown values such as "--".
+    """
+    name = (fuel_name or "").lower()
+    if re.search(r"range|extend", name):
+        return 5, "Гибрид (рейндж-экстендер)"
+    if re.search(r"mild|48v|light hybrid", name):
+        if "diesel" in name:
+            return 2, "Дизель (мягкий гибрид)"
+        return 1, "Бензин (мягкий гибрид)"
+    if "plug-in" in name:
+        return 6, "Гибрид (подзарядка)"
+    if "hybrid" in name:
+        return 6, "Гибрид"
+    if "electric" in name:
+        return 4, "Электро"
+    if "diesel" in name:
+        return 2, "Дизель"
+    if re.search(r"gasoline|petrol", name):
+        return 1, "Бензин"
+    return None, (fuel_name or "").strip() or "Неизвестно"
+
+
+def select_power_hp(fuel_code, spec, engine):
+    """
+    Pick the horsepower (л.с.) sent to calcus.ru for this fuel type.
 
     Args:
-        url: Che168 listing URL
+        fuel_code: calcus engine code from map_energy_type (1, 2, 4, 5, 6)
+        spec: {item_id: value} from _spec_values
+        engine: carinfo "engine" string, e.g. "1.5T 170hp L4"
 
     Returns:
-        str: Car ID (infoid), or None if not found
+        int horsepower, or None if it can't be determined (the bot then asks the user)
     """
-    # Pattern to match 8-digit car IDs in URL path
-    match = re.search(r'/(\d{7,9})(?:\.html)?', url)
-    if match:
-        return match.group(1)
+    # TODO: implement the per-fuel power rules
+    raise NotImplementedError
 
-    # Alternative pattern for query parameters
-    match = re.search(r'infoid=(\d{7,9})', url)
-    if match:
-        return match.group(1)
 
+def _displacement_cc(spec, engine):
+    """Engine displacement in cc from specs, falling back to the engine string."""
+    ml = _spec_number(spec, SPEC_DISPLACEMENT_ML)
+    if ml:
+        return int(ml)
+    liters = _spec_number(spec, SPEC_DISPLACEMENT_L)
+    if liters:
+        return int(round(liters * 1000))
+    match = re.match(r"\s*(\d+\.\d+)\s*[TL]?(?:\s|$)", engine or "")
+    if match:
+        return int(round(float(match.group(1)) * 1000))
     return None
 
 
-def is_che168_url(url):
+def usd_to_cny(price_usd, rate):
     """
-    Check if the given URL is a Che168.com listing URL.
+    Recover the domestic yuan price from the site's USD price.
 
-    Args:
-        url: URL to check
-
-    Returns:
-        bool: True if it's a Che168 URL
+    Domestic prices are whole hundreds of yuan and the site rounds USD to $10,
+    so the product lands within ~33 yuan of a round hundred. A larger gap means
+    the site's rate has changed and CHE168_CNY_PER_USD needs updating.
     """
-    return bool(re.match(r'^https?://(www\.|m\.)?che168\.com/.*', url))
-
-
-def get_che168_car_info(infoid, session=None):
-    """
-    Fetch car information from Che168 API.
-
-    Args:
-        infoid: Car listing ID (infoid)
-        session: Optional requests.Session (created if not provided)
-
-    Returns:
-        dict: Car information, or None if fetching fails
-    """
-    if session is None:
-        session = _create_session()
-
-    try:
-        params = {
-            "infoid": str(infoid),
-            "_appid": "2sc.m",
-            "v": "11.41.5",
-            "deviceid": "",
-            "offertype": "0",
-            "ucuserauth": "",
-            "gpscid": "0",
-            "iscardetailab": "B",
-            "encryptinfo": "",
-            "fromtag": "0",
-            "test103157": "X",
-            "userid": "0",
-            "s_pid": "0",
-            "s_cid": "0",
-            "_subappid": "",
-        }
-
-        response = session.get(
-            CHE168_API_URL,
-            params=params,
-            timeout=30
+    raw = price_usd * rate
+    price_cny = int(round(raw / 100) * 100)
+    if abs(raw - price_cny) > 35:
+        logging.warning(
+            "che168: $%s x %s = %.0f CNY is not near a round hundred; "
+            "the site CNY/USD rate may have changed (CHE168_CNY_PER_USD)",
+            price_usd, rate, raw,
         )
-
-        if response.status_code == 200:
-            data = response.json()
-
-            if data.get("returncode") == 0 and data.get("result"):
-                return parse_che168_response(data["result"])
-            else:
-                logging.warning(f"Che168 API returned error: {data.get('message')}")
-                return None
-
-        logging.warning(f"Che168 API HTTP error: {response.status_code}")
-        return None
-
-    except requests.exceptions.Timeout:
-        logging.error("Che168 API timeout")
-        return None
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Che168 API request failed: {e}")
-        return None
-    except Exception as e:
-        logging.error(f"Che168 scraper error: {e}")
-        return None
+    return price_cny
 
 
-def get_che168_car_specs(infoid, session=None):
+def parse_global_car(carinfo, spec_result, rate):
     """
-    Fetch car specifications from Che168 specs API.
-    Returns detailed specs including HP.
+    Turn carinfo + specparam results into the dict used by the China calculation.
 
-    Args:
-        infoid: Car listing ID
-        session: Optional requests.Session (created if not provided)
-
-    Returns:
-        dict: Specs API response, or None if fetching fails
+    Raises:
+        Che168DataError: price, date or (for non-EVs) displacement is missing
     """
-    if session is None:
-        session = _create_session()
+    price_usd = _num(carinfo.get("price"))
+    if not price_usd:
+        raise Che168DataError("цена")
+    price_usd = int(price_usd)
 
-    try:
-        params = {
-            "infoid": str(infoid),
-            "_appid": "2sc.m",
-            "v": "11.41.5",
-            "deviceid": "",
-            "userid": "0",
-            "s_pid": "0",
-            "s_cid": "0",
-            "_subappid": "",
-        }
+    age, age_source = None, None
+    for field, source in (
+        ("manufacturedate", "manufacture"),
+        ("regdate", "registration"),
+        ("producedate", "manufacture"),
+    ):
+        age = _parse_year_month(carinfo.get(field))
+        if age:
+            age_source = source
+            break
+    if not age:
+        raise Che168DataError("дата выпуска")
 
-        response = session.get(
-            CHE168_SPECS_API_URL,
-            params=params,
-            timeout=30
-        )
+    fuel_name = (carinfo.get("fuelname") or "").strip()
+    fuel_code, fuel_ru = map_energy_type(fuel_name)
+    spec = _spec_values(spec_result)
+    engine = carinfo.get("engine") or ""
 
-        if response.status_code == 200:
-            return response.json()
-
-        logging.warning(f"Che168 specs API HTTP error: {response.status_code}")
-        return None
-
-    except requests.exceptions.Timeout:
-        logging.error("Che168 specs API timeout")
-        return None
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Che168 specs API request failed: {e}")
-        return None
-    except Exception as e:
-        logging.error(f"Che168 specs API error: {e}")
-        return None
-
-
-def extract_hp_from_specs(specs_data):
-    """
-    Extract horsepower from specs API response.
-    Looks for "最大马力(Ps)" in the engine section.
-
-    API returns list of sections like:
-    [
-      {"title": "发动机", "data": [
-        {"name": "最大马力(Ps)", "content": "340", ...},
-        ...
-      ]},
-      ...
-    ]
-
-    Args:
-        specs_data: Response from get_che168_car_specs()
-
-    Returns:
-        int: Horsepower value, or None if not found
-    """
-    if not specs_data or specs_data.get("returncode") != 0:
-        return None
-
-    result = specs_data.get("result", [])
-
-    for section in result:
-        # Look in "发动机" (Engine) section for direct HP value
-        if section.get("title") == "发动机":
-            for item in section.get("data", []):
-                if item.get("name") == "最大马力(Ps)":
-                    try:
-                        return int(item.get("content", 0))
-                    except (ValueError, TypeError):
-                        pass
-
-        # Fallback: Look in "基本参数" for engine string with HP
-        if section.get("title") == "基本参数":
-            for item in section.get("data", []):
-                if item.get("name") == "发动机":
-                    content = item.get("content", "")
-                    match = re.search(r'(\d+)马力', content)
-                    if match:
-                        return int(match.group(1))
-
-    return None
-
-
-def parse_che168_response(result):
-    """
-    Parse Che168 API response and extract relevant car data.
-
-    Args:
-        result: The 'result' object from API response
-
-    Returns:
-        dict: Parsed car information
-    """
-    # Extract and transform price (multiply by 10,000 as prices are in 万元)
-    price_raw = result.get("price", 0)
-    price_cny = int(float(price_raw) * 10000)
-
-    # Extract and transform displacement (multiply by 1,000 for cc)
-    displacement_raw = result.get("displacement", "0")
-    try:
-        displacement_liters = float(displacement_raw)
-        displacement_cc = int(displacement_liters * 1000)
-    except (ValueError, TypeError):
+    if fuel_code == 4:
         displacement_cc = 0
+    else:
+        displacement_cc = _displacement_cc(spec, engine)
+        if displacement_cc is None and fuel_code is not None:
+            raise Che168DataError("объём двигателя")
 
-    # Parse first registration date (format: "2020-01")
-    first_reg_date = result.get("firstregdate", "")
-    year, month = parse_registration_date(first_reg_date)
+    horsepower = select_power_hp(fuel_code, spec, engine) if fuel_code else None
 
-    # Extract mileage (multiply by 10,000 as it's in 万公里)
-    mileage_raw = result.get("mileage", 0)
-    mileage_km = int(float(mileage_raw) * 10000)
+    photos = [
+        url
+        for group in carinfo.get("catepiclist") or []
+        for url in group.get("list") or []
+        if isinstance(url, str) and url.startswith("http")
+    ][:10]
 
-    # Get fuel type code
-    fuel_name = result.get("fuelname", "汽油")
-    fuel_type_code = FUEL_TYPE_MAPPING.get(fuel_name, 1)
-    fuel_type_ru = FUEL_TYPE_NAMES_RU.get(fuel_name, "Бензин")
-
-    # Get photos (limit to 10)
-    photos = result.get("piclist", [])[:10]
-
-    # Extract guidance price (original MSRP, also in 万元)
-    guidance_price = result.get("guidanceprice", 0)
-    guidance_price_cny = int(float(guidance_price) * 10000) if guidance_price else 0
+    infoid = carinfo.get("infoid")
+    mileage = _num(carinfo.get("mileage"))
 
     return {
-        # Basic info
-        "infoid": result.get("infoid"),
-        "car_name": result.get("carname", ""),
-        "brand_name": result.get("brandname", ""),
-        "series_name": result.get("seriesname", ""),
-        "vin_code": result.get("vincode", ""),
-
-        # Price
-        "price_cny": price_cny,
-        "price_raw": price_raw,  # Original value from API
-        "guidance_price_cny": guidance_price_cny,
-
-        # Technical specs
+        "infoid": infoid,
+        "car_name": _clean_car_name(carinfo.get("carname")),
+        "price_usd": price_usd,
+        "price_cny": usd_to_cny(price_usd, rate),
         "displacement_cc": displacement_cc,
-        "displacement_liters": displacement_liters,
-        "engine": result.get("engine", ""),  # e.g., "3.0T"
-        "gearbox": result.get("gearbox", ""),  # e.g., "自动"
-        "driving_mode": result.get("drivingmode", ""),  # e.g., "前置四驱"
-        "level_name": result.get("levelname", ""),  # e.g., "中大型SUV"
-
-        # Registration and age
-        "first_reg_date": first_reg_date,
-        "first_reg_year": year,
-        "first_reg_month": month,
-        "first_reg_str": result.get("firstregstr", ""),  # e.g., "6年1个月"
-
-        # Mileage and condition
-        "mileage_km": mileage_km,
-        "transfer_count": result.get("transfercount", 0),  # Number of owners
-        "color_name": result.get("colorname", ""),
-        "car_use_name": result.get("carusename", ""),  # e.g., "家用"
-
-        # Fuel
+        "age_year": age[0],
+        "age_month": age[1],
+        "age_source": age_source,
+        "mileage_km": int(mileage) if mileage else 0,
         "fuel_name": fuel_name,
-        "fuel_type_code": fuel_type_code,
-        "fuel_type_ru": fuel_type_ru,
-
-        # Location
-        "city_id": result.get("cid"),
-        "city_name": result.get("cname", ""),
-        "province_id": result.get("pid"),
-
-        # Inspection dates
-        "examine_date": result.get("examine", ""),  # Next inspection
-        "insurance_date": result.get("insurance", ""),  # Insurance expiry
-
-        # Environmental
-        "environmental": result.get("environmental", ""),  # e.g., "国VI"
-
-        # Dealer info
-        "dealer_id": result.get("dealerid"),
-        "user_id": result.get("userid"),
-
-        # Photos
+        "fuel_type_code": fuel_code,
+        "fuel_type_ru": fuel_ru,
+        "horsepower": horsepower,
+        "gearbox": (carinfo.get("gearbox") or "").strip(),
+        "city_name": (carinfo.get("cname") or "").strip().title(),
         "photos": photos,
-        "main_photo": result.get("imageurl", ""),
-
-        # Loan info
-        "is_loan": result.get("isloan", 0),
-        "down_payment": result.get("downpayment", 0),
-
-        # Performance (if available)
-        "accelerate": result.get("accelerate", ""),  # 0-100 km/h time
-
-        # Consumption
-        "nedc_fuel_consumption": result.get("nedc_fuelconsumption", ""),
-        "wltc_fuel_consumption": result.get("wltc_fuelconsumption", ""),
-
-        # Source
-        "source": "che168",
+        "link": build_global_link(infoid),
+        "source": "che168_global",
     }
 
 
-def parse_registration_date(date_str):
+def get_global_car_info(car_id):
     """
-    Parse registration date string into year and month.
+    Fetch and parse a global.che168.com listing.
 
-    Args:
-        date_str: Date string in format "YYYY-MM" (e.g., "2020-01")
+    A failed specs request is not fatal: horsepower stays None and the bot
+    asks the user for it.
 
-    Returns:
-        tuple: (year: int, month: int)
+    Raises:
+        Che168NotFound, Che168Blocked, Che168Unavailable, Che168DataError
     """
-    try:
-        if "-" in date_str:
-            parts = date_str.split("-")
-            year = int(parts[0])
-            month = int(parts[1])
-            return year, month
-    except (ValueError, IndexError):
-        pass
+    session = _create_session()
 
-    # Return current year/month as fallback
-    now = datetime.now()
-    return now.year, now.month
+    carinfo = _api_get(session, f"carinfo/{car_id}")
+    if not carinfo:
+        raise Che168NotFound(f"carinfo/{car_id}: empty result")
 
+    spec_result = {}
+    specid = carinfo.get("specid")
+    if specid:
+        try:
+            spec_result = _api_get(session, "specparam", {"specid": specid}) or {}
+        except Che168Error as e:
+            logging.warning("che168 specparam for %s failed, continuing without specs: %s", car_id, e)
+
+    return parse_global_car(carinfo, spec_result, DEFAULT_CNY_PER_USD)
+
+
+# ==================== Formatting ====================
 
 def format_mileage(mileage_km):
     """
@@ -429,91 +439,51 @@ def format_mileage(mileage_km):
     Returns:
         str: Formatted mileage string
     """
-    if mileage_km >= 10000:
-        return f"{mileage_km / 10000:.1f} тыс. км"
-    else:
-        return f"{mileage_km:,} км"
+    if mileage_km >= 1000:
+        thousands = f"{mileage_km / 1000:.1f}".rstrip("0").rstrip(".")
+        return f"{thousands} тыс. км"
+    return f"{mileage_km} км"
 
 
-def format_gearbox(gearbox_cn):
+def format_gearbox(gearbox):
     """
-    Translate gearbox type from Chinese to Russian.
+    Translate an English gearbox description to Russian.
 
     Args:
-        gearbox_cn: Chinese gearbox name
+        gearbox: e.g. "9-speed automatic transmission"
 
     Returns:
-        str: Russian gearbox name
+        str: Russian gearbox name, or the original text if unrecognised
     """
-    mapping = {
-        "自动": "Автомат",
-        "手动": "Механика",
-        "手自一体": "Типтроник",
-        "无级变速": "Вариатор",
-        "双离合": "Робот (DCT)",
-    }
-    return mapping.get(gearbox_cn, gearbox_cn)
-
-
-def get_che168_car_info_with_fallback(infoid):
-    """
-    Fetch car info from Che168 API with retry logic.
-    Also fetches specs to get HP value.
-
-    Args:
-        infoid: Car listing ID (infoid)
-
-    Returns:
-        dict: Car information with HP, or None if fetching fails
-    """
-    session = _create_session()
-    proxy_url = os.getenv("CHE168_PROXY_URL", "")
-    mode = f"proxy ({proxy_url[:30]}...)" if proxy_url else "direct connection"
-    logging.info(f"Fetching Che168 car info for {infoid} via {mode}")
-
-    result = get_che168_car_info(infoid, session=session)
-    if result is None:
-        logging.error(f"Failed to fetch Che168 car info for {infoid}")
-        return None
-
-    specs = get_che168_car_specs(infoid, session=session)
-    hp = extract_hp_from_specs(specs)
-    result["horsepower"] = hp or 200
-    logging.info(f"Che168 car {infoid}: HP={hp or 'default 200'}")
-    return result
+    text = (gearbox or "").lower()
+    if "dual-clutch" in text or "dct" in text:
+        return "Робот (DCT)"
+    if "cvt" in text or "continuously variable" in text:
+        return "Вариатор"
+    if "single-speed" in text:
+        return "Редуктор"
+    if "manual" in text and "automatic" not in text:
+        return "Механика"
+    if "automatic" in text or "amt" in text:
+        return "Автомат"
+    return (gearbox or "").strip() or "—"
 
 
 if __name__ == "__main__":
-    # Test the scraper
-    print("Testing Che168 scraper...")
+    import json
+    import sys
 
-    # Test URL parsing
-    test_urls = [
-        "https://m.che168.com/dealer/657408/56913158.html",
-        "https://www.che168.com/usedcar/56913158.html",
-        "https://m.che168.com/v/56913158.html",
-    ]
+    logging.basicConfig(level=logging.INFO)
 
-    for url in test_urls:
-        car_id = extract_car_id_from_che168_url(url)
-        print(f"URL: {url}")
-        print(f"  Car ID: {car_id}")
-        print(f"  Is Che168 URL: {is_che168_url(url)}")
-        print()
+    if len(sys.argv) != 2:
+        print("Usage: python che168_scraper.py <global.che168.com detail link>")
+        sys.exit(2)
 
-    # Test API fetch
-    print("Fetching car info for ID 56913158...")
-    car_info = get_che168_car_info("56913158")
+    car_id = extract_global_car_id(sys.argv[1])
+    if not car_id:
+        print("Not a global.che168.com detail link")
+        sys.exit(2)
 
-    if car_info:
-        print(f"\nCar: {car_info['car_name']}")
-        print(f"Price: ¥{car_info['price_cny']:,}")
-        print(f"Displacement: {car_info['displacement_cc']}cc ({car_info['displacement_liters']}L)")
-        print(f"First Registration: {car_info['first_reg_date']} ({car_info['first_reg_year']}-{car_info['first_reg_month']:02d})")
-        print(f"Mileage: {format_mileage(car_info['mileage_km'])}")
-        print(f"Fuel: {car_info['fuel_type_ru']} ({car_info['fuel_name']})")
-        print(f"Location: {car_info['city_name']}")
-        print(f"VIN: {car_info['vin_code']}")
-        print(f"Photos: {len(car_info['photos'])} images")
-    else:
-        print("Failed to fetch car info")
+    info = get_global_car_info(car_id)
+    info["photos"] = f"{len(info['photos'])} photos"
+    print(json.dumps(info, ensure_ascii=False, indent=2))

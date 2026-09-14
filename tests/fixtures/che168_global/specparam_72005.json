@@ -1,0 +1,826 @@
+{
+ "returncode": 0,
+ "message": "成功",
+ "result": {
+  "specid": 72005,
+  "paramtypeitems": [
+   {
+    "name": "Basic Specifications",
+    "paramitems": [
+     {
+      "name": "Model Name",
+      "value": "AITO M5 2025 Extended Range Ultra RWD Edition",
+      "id": 113,
+      "sublist": []
+     },
+     {
+      "name": "Manufacturer Suggested Retail Price (¥)",
+      "value": "229800",
+      "id": 112,
+      "sublist": []
+     },
+     {
+      "name": "Manufacturer",
+      "value": "AITO",
+      "id": 111,
+      "sublist": []
+     },
+     {
+      "name": "Class",
+      "value": "Mid-size SUV",
+      "id": 116,
+      "sublist": []
+     },
+     {
+      "name": "Energy Type",
+      "value": "Range Extender",
+      "id": 55,
+      "sublist": []
+     },
+     {
+      "name": "Emission Standard",
+      "value": "China VI",
+      "id": 61,
+      "sublist": []
+     },
+     {
+      "name": "Launch Date",
+      "value": "2025.03",
+      "id": 109,
+      "sublist": []
+     },
+     {
+      "name": "WLTC Pure Electric Range (km)",
+      "value": "195",
+      "id": 135,
+      "sublist": []
+     },
+     {
+      "name": "CLTC Pure Electric Range (km)",
+      "value": "255",
+      "id": 101,
+      "sublist": []
+     },
+     {
+      "name": "Fast Charging Time (hours)",
+      "value": "0.5",
+      "id": 79,
+      "sublist": []
+     },
+     {
+      "name": "Slow Charging Time (hours)",
+      "value": "5",
+      "id": 81,
+      "sublist": []
+     },
+     {
+      "name": "Fast Charge Capacity Range (%)",
+      "value": "20-80",
+      "id": 80,
+      "sublist": []
+     },
+     {
+      "name": "Slow Charge Capacity Range (%)",
+      "value": "20-90",
+      "id": 82,
+      "sublist": []
+     },
+     {
+      "name": "Maximum power (kW)",
+      "value": "200",
+      "id": 50,
+      "sublist": []
+     },
+     {
+      "name": "Max Torque (N·m)",
+      "value": "360",
+      "id": 52,
+      "sublist": []
+     },
+     {
+      "name": "Abbreviation",
+      "value": "Electric vehicle single-speed transmission",
+      "id": 108,
+      "sublist": []
+     },
+     {
+      "name": "Body structure",
+      "value": "--",
+      "id": 24,
+      "sublist": []
+     },
+     {
+      "name": "Engine",
+      "value": "1.5T 152HP L4",
+      "id": 115,
+      "sublist": []
+     },
+     {
+      "name": "Electric Motor (Ps)",
+      "value": "272",
+      "id": 114,
+      "sublist": []
+     },
+     {
+      "name": "Length*Width*Height (mm)",
+      "value": "4785*1930*1625",
+      "id": 110,
+      "sublist": []
+     },
+     {
+      "name": "Official 0-100km/h acceleration (s)",
+      "value": "7.1",
+      "id": 2,
+      "sublist": []
+     },
+     {
+      "name": "Official 0-50km/h Acceleration (s)",
+      "value": "3.5",
+      "id": 134,
+      "sublist": []
+     },
+     {
+      "name": "Top speed (km/h)",
+      "value": "200",
+      "id": 1,
+      "sublist": []
+     },
+     {
+      "name": "WLTC Combined Fuel Consumption (L/100km)",
+      "value": "0.68",
+      "id": 102,
+      "sublist": []
+     },
+     {
+      "name": "WLTC Fuel Consumption at Minimum Charge State (L/100km)",
+      "value": "6.1",
+      "id": 151,
+      "sublist": []
+     },
+     {
+      "name": "Electricity Equivalent Fuel Consumption (L/100km)",
+      "value": "2.26",
+      "id": 136,
+      "sublist": []
+     },
+     {
+      "name": "Comprehensive fuel and electricity consumption (L/100km)",
+      "value": "2.94",
+      "id": 167,
+      "sublist": []
+     },
+     {
+      "name": "Vehicle warranty",
+      "value": "--",
+      "id": 12,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "4 years or 100,000 km",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Curb weight (kg)",
+      "value": "2220",
+      "id": 3,
+      "sublist": []
+     },
+     {
+      "name": "Maximum Gross Weight (kg)",
+      "value": "2595",
+      "id": 137,
+      "sublist": []
+     }
+    ]
+   },
+   {
+    "name": "Body",
+    "paramitems": [
+     {
+      "name": "Length (mm)",
+      "value": "4785",
+      "id": 14,
+      "sublist": []
+     },
+     {
+      "name": "Width (mm)",
+      "value": "1930",
+      "id": 23,
+      "sublist": []
+     },
+     {
+      "name": "Height (mm)",
+      "value": "1625",
+      "id": 16,
+      "sublist": []
+     },
+     {
+      "name": "Wheelbase (mm)",
+      "value": "2880",
+      "id": 17,
+      "sublist": []
+     },
+     {
+      "name": "Front track (mm)",
+      "value": "1655",
+      "id": 18,
+      "sublist": []
+     },
+     {
+      "name": "Rear track (mm)",
+      "value": "1650",
+      "id": 19,
+      "sublist": []
+     },
+     {
+      "name": "Fully loaded minimum ground clearance (mm)",
+      "value": "150",
+      "id": 22,
+      "sublist": []
+     },
+     {
+      "name": "Unladen minimum ground clearance (mm)",
+      "value": "175",
+      "id": 21,
+      "sublist": []
+     },
+     {
+      "name": "Approach angle (°)",
+      "value": "17",
+      "id": 31,
+      "sublist": []
+     },
+     {
+      "name": "Departure angle (°)",
+      "value": "24",
+      "id": 32,
+      "sublist": []
+     },
+     {
+      "name": "Body structure",
+      "value": "SUV",
+      "id": 24,
+      "sublist": []
+     },
+     {
+      "name": "Door Opening Method",
+      "value": "Conventional Door",
+      "id": 131,
+      "sublist": []
+     },
+     {
+      "name": "Number of doors",
+      "value": "--",
+      "id": 27,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "5",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Seating capacity",
+      "value": "--",
+      "id": 28,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "5",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Fuel tank capacity (L)",
+      "value": "56",
+      "id": 29,
+      "sublist": []
+     },
+     {
+      "name": "Trunk capacity (L)",
+      "value": "369-776",
+      "id": 30,
+      "sublist": []
+     },
+     {
+      "name": "Drag Coefficient (Cd)",
+      "value": "-",
+      "id": 99,
+      "sublist": []
+     }
+    ]
+   },
+   {
+    "name": "Engine",
+    "paramitems": [
+     {
+      "name": "Engine model",
+      "value": "H15RT",
+      "id": 37,
+      "sublist": []
+     },
+     {
+      "name": "Displacement (mL)",
+      "value": "1499",
+      "id": 39,
+      "sublist": []
+     },
+     {
+      "name": "Displacement (L)",
+      "value": "1.5",
+      "id": 40,
+      "sublist": []
+     },
+     {
+      "name": "Intake form",
+      "value": "Turbocharged",
+      "id": 41,
+      "sublist": []
+     },
+     {
+      "name": "Engine Layout",
+      "value": "Transverse",
+      "id": 107,
+      "sublist": []
+     },
+     {
+      "name": "Cylinder arrangement",
+      "value": "L",
+      "id": 42,
+      "sublist": []
+     },
+     {
+      "name": "Number of cylinders",
+      "value": "4",
+      "id": 43,
+      "sublist": []
+     },
+     {
+      "name": "Valves per cylinder",
+      "value": "4",
+      "id": 44,
+      "sublist": []
+     },
+     {
+      "name": "Compression ratio",
+      "value": "15",
+      "id": 45,
+      "sublist": []
+     },
+     {
+      "name": "Valvetrain",
+      "value": "DOHC",
+      "id": 46,
+      "sublist": []
+     },
+     {
+      "name": "Bore (mm)",
+      "value": "73.5",
+      "id": 47,
+      "sublist": []
+     },
+     {
+      "name": "Stroke (mm)",
+      "value": "88.32",
+      "id": 48,
+      "sublist": []
+     },
+     {
+      "name": "Maximum horsepower (Ps)",
+      "value": "152",
+      "id": 49,
+      "sublist": []
+     },
+     {
+      "name": "Maximum power (kW)",
+      "value": "112",
+      "id": 50,
+      "sublist": []
+     },
+     {
+      "name": "Max Torque (N·m)",
+      "value": "216",
+      "id": 52,
+      "sublist": []
+     },
+     {
+      "name": "Maximum Net Power (kW)",
+      "value": "110",
+      "id": 106,
+      "sublist": []
+     },
+     {
+      "name": "Energy Type",
+      "value": "Range Extender",
+      "id": 55,
+      "sublist": []
+     },
+     {
+      "name": "Fuel Grade",
+      "value": "95 Octane",
+      "id": 57,
+      "sublist": []
+     },
+     {
+      "name": "Fuel Supply System",
+      "value": "Multi-point Injection",
+      "id": 58,
+      "sublist": []
+     },
+     {
+      "name": "Cylinder Head Material",
+      "value": "Aluminum Alloy",
+      "id": 59,
+      "sublist": []
+     },
+     {
+      "name": "Cylinder Block Material",
+      "value": "Aluminum Alloy",
+      "id": 60,
+      "sublist": []
+     },
+     {
+      "name": "Emission Standard",
+      "value": "China VI",
+      "id": 61,
+      "sublist": []
+     }
+    ]
+   },
+   {
+    "name": "Electric Motor",
+    "paramitems": [
+     {
+      "name": "Rear Motor Brand",
+      "value": "Huawei Technologies",
+      "id": 148,
+      "sublist": []
+     },
+     {
+      "name": "Rear Motor Model",
+      "value": "CTZ196XY0P4",
+      "id": 144,
+      "sublist": []
+     },
+     {
+      "name": "Motor Type",
+      "value": "Permanent Magnet/Synchronous",
+      "id": 62,
+      "sublist": []
+     },
+     {
+      "name": "Total Motor Power (kW)",
+      "value": "200",
+      "id": 63,
+      "sublist": []
+     },
+     {
+      "name": "Total Electric Motor Horsepower (Ps)",
+      "value": "272",
+      "id": 120,
+      "sublist": []
+     },
+     {
+      "name": "Total Motor Torque (N·m)",
+      "value": "360",
+      "id": 65,
+      "sublist": []
+     },
+     {
+      "name": "Rear Motor Max Power (kW)",
+      "value": "200",
+      "id": 68,
+      "sublist": []
+     },
+     {
+      "name": "Rear Motor Max Torque (N·m)",
+      "value": "360",
+      "id": 69,
+      "sublist": []
+     },
+     {
+      "name": "Number of Drive Motors",
+      "value": "Single Motor",
+      "id": 72,
+      "sublist": []
+     },
+     {
+      "name": "Motor Layout",
+      "value": "Rear-mounted",
+      "id": 73,
+      "sublist": []
+     },
+     {
+      "name": "Three-Electric System Warranty",
+      "value": "--",
+      "id": 78,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "8 years or 160,000 km",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "Battery & Charging",
+    "paramitems": [
+     {
+      "name": "Battery Type",
+      "value": "--",
+      "id": 74,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "Ternary Lithium Battery",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Battery cell brand",
+      "value": "--",
+      "id": 157,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "CATL",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Battery Cooling Method",
+      "value": "Liquid cooling",
+      "id": 133,
+      "sublist": []
+     },
+     {
+      "name": "WLTC Pure Electric Range (km)",
+      "value": "195",
+      "id": 135,
+      "sublist": []
+     },
+     {
+      "name": "CLTC Pure Electric Range (km)",
+      "value": "255",
+      "id": 101,
+      "sublist": []
+     },
+     {
+      "name": "CLTC Combined Range (km)",
+      "value": "1440",
+      "id": 130,
+      "sublist": []
+     },
+     {
+      "name": "Battery Energy (kWh)",
+      "value": "42",
+      "id": 76,
+      "sublist": []
+     },
+     {
+      "name": "Power Consumption (kWh/100km)",
+      "value": "19.5",
+      "id": 77,
+      "sublist": []
+     },
+     {
+      "name": "Fast Charging",
+      "value": "Supported",
+      "id": 124,
+      "sublist": []
+     },
+     {
+      "name": "Fast Charging Power (kW)",
+      "value": "73",
+      "id": 125,
+      "sublist": []
+     },
+     {
+      "name": "Fast Charging Time (hours)",
+      "value": "0.5",
+      "id": 79,
+      "sublist": []
+     },
+     {
+      "name": "Fast Charge Capacity Range (%)",
+      "value": "20-80",
+      "id": 80,
+      "sublist": []
+     },
+     {
+      "name": "Slow Charging Time (hours)",
+      "value": "5",
+      "id": 81,
+      "sublist": []
+     },
+     {
+      "name": "Slow Charge Capacity Range (%)",
+      "value": "20-90",
+      "id": 82,
+      "sublist": []
+     },
+     {
+      "name": "External AC Discharge Power (kW)",
+      "value": "3.5",
+      "id": 140,
+      "sublist": []
+     },
+     {
+      "name": "External DC Discharge Power (kW)",
+      "value": "15",
+      "id": 145,
+      "sublist": []
+     }
+    ]
+   },
+   {
+    "name": "Transmission",
+    "paramitems": [
+     {
+      "name": "Abbreviation",
+      "value": "Electric vehicle single-speed transmission",
+      "id": 108,
+      "sublist": []
+     },
+     {
+      "name": "Number of Gears",
+      "value": "1",
+      "id": 84,
+      "sublist": []
+     },
+     {
+      "name": "Transmission Type",
+      "value": "Fixed Gear Ratio Transmission",
+      "id": 85,
+      "sublist": []
+     }
+    ]
+   },
+   {
+    "name": "Chassis & Steering",
+    "paramitems": [
+     {
+      "name": "Drive Type",
+      "value": "--",
+      "id": 86,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "Rear Engine, Rear-Wheel Drive",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Front Suspension Type",
+      "value": "--",
+      "id": 89,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "Double fork arm independent suspension",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Rear Suspension Type",
+      "value": "--",
+      "id": 90,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "Multi-Link Independent Suspension",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Power Steering Type",
+      "value": "--",
+      "id": 91,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "Electric power steering",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Body Structure",
+      "value": "Unibody",
+      "id": 92,
+      "sublist": []
+     }
+    ]
+   },
+   {
+    "name": "Wheels & Brakes",
+    "paramitems": [
+     {
+      "name": "Front Brake Type",
+      "value": "--",
+      "id": 93,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "Ventilated disc",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Rear Brake Type",
+      "value": "--",
+      "id": 94,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "Ventilated disc",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Parking Brake Type",
+      "value": "--",
+      "id": 95,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "Electronic parking brake",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Front Tire Specification",
+      "value": "--",
+      "id": 96,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "255/50 R19",
+        "optiontype": 1,
+        "price": 0
+       },
+       {
+        "subname": "",
+        "subvalue": "255/45 R20",
+        "optiontype": 2,
+        "price": 6000
+       }
+      ]
+     },
+     {
+      "name": "Rear Tire Specification",
+      "value": "--",
+      "id": 97,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "255/50 R19",
+        "optiontype": 1,
+        "price": 0
+       },
+       {
+        "subname": "",
+        "subvalue": "255/45 R20",
+        "optiontype": 2,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Spare Tire Specification",
+      "value": "-",
+      "id": 98,
+      "sublist": []
+     }
+    ]
+   }
+  ]
+ }
+}

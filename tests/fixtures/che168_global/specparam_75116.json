@@ -1,0 +1,594 @@
+{
+ "returncode": 0,
+ "message": "成功",
+ "result": {
+  "specid": 75116,
+  "paramtypeitems": [
+   {
+    "name": "Basic Specifications",
+    "paramitems": [
+     {
+      "name": "Model Name",
+      "value": "Model 3 2025 Facelift Rear-Wheel Drive",
+      "id": 113,
+      "sublist": []
+     },
+     {
+      "name": "Manufacturer Suggested Retail Price (¥)",
+      "value": "235500",
+      "id": 112,
+      "sublist": []
+     },
+     {
+      "name": "Manufacturer",
+      "value": "Tesla China",
+      "id": 111,
+      "sublist": []
+     },
+     {
+      "name": "Class",
+      "value": "Mid-size car",
+      "id": 116,
+      "sublist": []
+     },
+     {
+      "name": "Energy Type",
+      "value": "Pure Electric",
+      "id": 55,
+      "sublist": []
+     },
+     {
+      "name": "Launch Date",
+      "value": "2025.10",
+      "id": 109,
+      "sublist": []
+     },
+     {
+      "name": "CLTC Pure Electric Range (km)",
+      "value": "634",
+      "id": 101,
+      "sublist": []
+     },
+     {
+      "name": "Maximum power (kW)",
+      "value": "194",
+      "id": 50,
+      "sublist": []
+     },
+     {
+      "name": "Max Torque (N·m)",
+      "value": "340",
+      "id": 52,
+      "sublist": []
+     },
+     {
+      "name": "Body structure",
+      "value": "--",
+      "id": 24,
+      "sublist": []
+     },
+     {
+      "name": "Electric Motor (Ps)",
+      "value": "264",
+      "id": 114,
+      "sublist": []
+     },
+     {
+      "name": "Length*Width*Height (mm)",
+      "value": "4720*1848*1442",
+      "id": 110,
+      "sublist": []
+     },
+     {
+      "name": "Official 0-100km/h acceleration (s)",
+      "value": "6.1",
+      "id": 2,
+      "sublist": []
+     },
+     {
+      "name": "Top speed (km/h)",
+      "value": "200",
+      "id": 1,
+      "sublist": []
+     },
+     {
+      "name": "Electricity Equivalent Fuel Consumption (L/100km)",
+      "value": "1.3",
+      "id": 136,
+      "sublist": []
+     },
+     {
+      "name": "Vehicle warranty",
+      "value": "--",
+      "id": 12,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "4 years or 80,000 km",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Curb weight (kg)",
+      "value": "1760",
+      "id": 3,
+      "sublist": []
+     },
+     {
+      "name": "Maximum Gross Weight (kg)",
+      "value": "2192",
+      "id": 137,
+      "sublist": []
+     }
+    ]
+   },
+   {
+    "name": "Body",
+    "paramitems": [
+     {
+      "name": "Length (mm)",
+      "value": "4720",
+      "id": 14,
+      "sublist": []
+     },
+     {
+      "name": "Width (mm)",
+      "value": "1848",
+      "id": 23,
+      "sublist": []
+     },
+     {
+      "name": "Height (mm)",
+      "value": "1442",
+      "id": 16,
+      "sublist": []
+     },
+     {
+      "name": "Wheelbase (mm)",
+      "value": "2875",
+      "id": 17,
+      "sublist": []
+     },
+     {
+      "name": "Front track (mm)",
+      "value": "1584",
+      "id": 18,
+      "sublist": []
+     },
+     {
+      "name": "Rear track (mm)",
+      "value": "1584",
+      "id": 19,
+      "sublist": []
+     },
+     {
+      "name": "Fully loaded minimum ground clearance (mm)",
+      "value": "138",
+      "id": 22,
+      "sublist": []
+     },
+     {
+      "name": "Approach angle (°)",
+      "value": "13",
+      "id": 31,
+      "sublist": []
+     },
+     {
+      "name": "Departure angle (°)",
+      "value": "12",
+      "id": 32,
+      "sublist": []
+     },
+     {
+      "name": "Minimum turning radius (m)",
+      "value": "5.8",
+      "id": 35,
+      "sublist": []
+     },
+     {
+      "name": "Body structure",
+      "value": "Sedan",
+      "id": 24,
+      "sublist": []
+     },
+     {
+      "name": "Door Opening Method",
+      "value": "Conventional Door",
+      "id": 131,
+      "sublist": []
+     },
+     {
+      "name": "Number of doors",
+      "value": "--",
+      "id": 27,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "4",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Seating capacity",
+      "value": "--",
+      "id": 28,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "5",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Front Trunk Volume (L)",
+      "value": "88",
+      "id": 118,
+      "sublist": []
+     },
+     {
+      "name": "Trunk capacity (L)",
+      "value": "594",
+      "id": 30,
+      "sublist": []
+     },
+     {
+      "name": "Drag Coefficient (Cd)",
+      "value": "0.22",
+      "id": 99,
+      "sublist": []
+     }
+    ]
+   },
+   {
+    "name": "Electric Motor",
+    "paramitems": [
+     {
+      "name": "Rear Motor Brand",
+      "value": "Tesla",
+      "id": 148,
+      "sublist": []
+     },
+     {
+      "name": "Rear Motor Model",
+      "value": "3D7",
+      "id": 144,
+      "sublist": []
+     },
+     {
+      "name": "Motor Type",
+      "value": "Permanent Magnet/Synchronous",
+      "id": 62,
+      "sublist": []
+     },
+     {
+      "name": "Total Motor Power (kW)",
+      "value": "194",
+      "id": 63,
+      "sublist": []
+     },
+     {
+      "name": "Total Electric Motor Horsepower (Ps)",
+      "value": "264",
+      "id": 120,
+      "sublist": []
+     },
+     {
+      "name": "Total Motor Torque (N·m)",
+      "value": "340",
+      "id": 65,
+      "sublist": []
+     },
+     {
+      "name": "Rear Motor Max Power (kW)",
+      "value": "194",
+      "id": 68,
+      "sublist": []
+     },
+     {
+      "name": "Rear Motor Max Torque (N·m)",
+      "value": "340",
+      "id": 69,
+      "sublist": []
+     },
+     {
+      "name": "Number of Drive Motors",
+      "value": "Single Motor",
+      "id": 72,
+      "sublist": []
+     },
+     {
+      "name": "Motor Layout",
+      "value": "Rear-mounted",
+      "id": 73,
+      "sublist": []
+     },
+     {
+      "name": "Three-Electric System Warranty",
+      "value": "--",
+      "id": 78,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "8 years or 160,000 km",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "Battery & Charging",
+    "paramitems": [
+     {
+      "name": "Battery Type",
+      "value": "--",
+      "id": 74,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "LFP Battery",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Battery cell brand",
+      "value": "--",
+      "id": 157,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "CATL (Fuding Era)",
+        "optiontype": 1,
+        "price": 0
+       },
+       {
+        "subname": "",
+        "subvalue": "CATL (Sichuan CATL)",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Battery Cooling Method",
+      "value": "Liquid cooling",
+      "id": 133,
+      "sublist": []
+     },
+     {
+      "name": "CLTC Pure Electric Range (km)",
+      "value": "634",
+      "id": 101,
+      "sublist": []
+     },
+     {
+      "name": "Battery Energy (kWh)",
+      "value": "62.5",
+      "id": 76,
+      "sublist": []
+     },
+     {
+      "name": "Power Consumption (kWh/100km)",
+      "value": "11.2",
+      "id": 77,
+      "sublist": []
+     },
+     {
+      "name": "Fast Charging",
+      "value": "Supported",
+      "id": 124,
+      "sublist": []
+     },
+     {
+      "name": "Fast Charging Power (kW)",
+      "value": "170",
+      "id": 125,
+      "sublist": []
+     },
+     {
+      "name": "Slow Charging Port Location",
+      "value": "Rear left side",
+      "id": 138,
+      "sublist": []
+     },
+     {
+      "name": "Fast Charging Port Location",
+      "value": "Rear left side",
+      "id": 139,
+      "sublist": []
+     }
+    ]
+   },
+   {
+    "name": "Transmission",
+    "paramitems": [
+     {
+      "name": "Abbreviation",
+      "value": "Electric vehicle single-speed transmission",
+      "id": 108,
+      "sublist": []
+     },
+     {
+      "name": "Number of Gears",
+      "value": "1",
+      "id": 84,
+      "sublist": []
+     },
+     {
+      "name": "Transmission Type",
+      "value": "Fixed Gear Ratio Transmission",
+      "id": 85,
+      "sublist": []
+     }
+    ]
+   },
+   {
+    "name": "Chassis & Steering",
+    "paramitems": [
+     {
+      "name": "Drive Type",
+      "value": "--",
+      "id": 86,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "Rear Engine, Rear-Wheel Drive",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Front Suspension Type",
+      "value": "--",
+      "id": 89,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "Double wishbone independent suspension",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Rear Suspension Type",
+      "value": "--",
+      "id": 90,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "Multi-Link Independent Suspension",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Power Steering Type",
+      "value": "--",
+      "id": 91,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "Electric power steering",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Body Structure",
+      "value": "Unibody",
+      "id": 92,
+      "sublist": []
+     }
+    ]
+   },
+   {
+    "name": "Wheels & Brakes",
+    "paramitems": [
+     {
+      "name": "Front Brake Type",
+      "value": "--",
+      "id": 93,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "Ventilated disc",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Rear Brake Type",
+      "value": "--",
+      "id": 94,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "Ventilated disc",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Parking Brake Type",
+      "value": "--",
+      "id": 95,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "Electronic parking brake",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Front Tire Specification",
+      "value": "--",
+      "id": 96,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "235/45 R18",
+        "optiontype": 1,
+        "price": 0
+       },
+       {
+        "subname": "",
+        "subvalue": "235/40 R19",
+        "optiontype": 2,
+        "price": 6000
+       }
+      ]
+     },
+     {
+      "name": "Rear Tire Specification",
+      "value": "--",
+      "id": 97,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "235/45 R18",
+        "optiontype": 1,
+        "price": 0
+       },
+       {
+        "subname": "",
+        "subvalue": "235/40 R19",
+        "optiontype": 2,
+        "price": 0
+       }
+      ]
+     },
+     {
+      "name": "Spare Tire Specification",
+      "value": "--",
+      "id": 98,
+      "sublist": [
+       {
+        "subname": "",
+        "subvalue": "None",
+        "optiontype": 1,
+        "price": 0
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ }
+}
