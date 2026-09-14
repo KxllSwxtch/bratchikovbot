@@ -69,6 +69,14 @@ class UrlTests(unittest.TestCase):
     def test_legacy_links(self):
         cases = {
             "https://m.che168.com/cardetail/index?infoid=59826201&pvareaid=108721&cartype=70": "59826201",
+            # A real shared link, tracking params included
+            "https://m.che168.com/cardetail/index?infoid=59826201&pvareaid=108721&cpcid=0&isrecom=0"
+            "&queryid=1789300366567$0$BA09F697-B39E-47E2-B3BF-A30E883AB273$16477$1&cartype=70"
+            "&cxextraparamsnew=&offertype=10007&offertag=0&activitycartype=0&cstencryptinfo=&encryptinfo="
+            "&userareaid=0&adfromid=0&fromtag=0&ext=%7B%22urltype%22%3A%22%22%7D"
+            "&otherstatisticsext=%7B%22abtest0923%22%3A%22%22%2C%22carrange%22%3A1%2C%22cartype%22%3A70"
+            "%2C%22pvareaid%22%3A%22108721%22%2C%22srecom%22%3A%221%22%7D": "59826201",
+            "Посчитайте https://m.che168.com/cardetail/index?infoid=59826201&pvareaid=108721": "59826201",
             "https://m.che168.com/dealer/657408/56913158.html": "56913158",
             "https://www.che168.com/usedcar/56913158.html": "56913158",
             "https://i.che168.com/car/56913158": "56913158",

@@ -181,7 +181,8 @@ def extract_legacy_car_id(text):
     """
     Car id from an old www./m./i.che168.com link, or None.
 
-    Only used to point the user to the same car on global.che168.com.
+    The id is the same on global.che168.com, so the bot calculates old links
+    through build_global_link(car_id).
     """
     match = LEGACY_URL_RE.search(text or "")
     if not match:

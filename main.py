@@ -4397,7 +4397,8 @@ def handle_message(message):
         else:
             calculate_cost(user_message, message, user_type)
 
-    elif is_che168_global_url(user_message):
+    elif is_che168_global_url(user_message) or extract_legacy_car_id(user_message):
+        # Old m.che168.com links carry the same infoid as the global.che168.com listing
         user_type = user_type_map.get(message.from_user.id)
 
         if user_type is None:
@@ -4414,16 +4415,8 @@ def handle_message(message):
                 reply_markup=markup,
             )
         else:
-            calculate_china_cost(user_message, message, user_type)
-
-    elif extract_legacy_car_id(user_message):
-        legacy_car_id = extract_legacy_car_id(user_message)
-        bot.send_message(
-            message.chat.id,
-            "Для Китая мы принимаем только ссылки с global.che168.com.\n\n"
-            f"Этот автомобиль на global.che168.com: {build_global_link(legacy_car_id)}\n\n"
-            "Если объявление открывается, отправьте мне эту ссылку.",
-        )
+            car_id = extract_global_car_id(user_message) or extract_legacy_car_id(user_message)
+            calculate_china_cost(build_global_link(car_id), message, user_type)
 
     elif user_message == "Написать менеджеру":
         managers_list = [
