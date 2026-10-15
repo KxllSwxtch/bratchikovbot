@@ -82,16 +82,17 @@ FUEL_TYPE_NAMES = {
 }
 load_dotenv()
 bot_token = os.getenv("BOT_TOKEN")
-
-# С российских VPS api.telegram.org по HTTPS недоступен (блокировка по SNI):
-# процесс жив, но каждый запрос к Bot API висит до таймаута. Поэтому запросы
-# идут через релей за рубежом (Caddy → api.telegram.org). Пусто — напрямую.
-TELEGRAM_API_BASE = os.getenv("TELEGRAM_API_BASE", "").strip().rstrip("/")
-if TELEGRAM_API_BASE:
-    telebot.apihelper.API_URL = TELEGRAM_API_BASE + "/bot{0}/{1}"
-    telebot.apihelper.FILE_URL = TELEGRAM_API_BASE + "/file/bot{0}/{1}"
-
 bot = telebot.TeleBot(bot_token)
+
+# С VPS в РФ примерно треть новых соединений с api.telegram.org теряется
+# (TCP-рукопожатие не проходит). Рабочее соединение открывается за ~0.05 с,
+# поэтому ждём недолго и сразу пробуем снова. С таймаутом по умолчанию (15 с)
+# каждый оборванный коннект подвешивал ответ бота на 30 с (IPv6 + IPv4),
+# а на старте ронял процесс. Задаётся до первого запроса: set_bot_commands()
+# при запуске тоже должен переживать обрывы.
+telebot.apihelper.CONNECT_TIMEOUT = 3
+telebot.apihelper.RETRY_ON_ERROR = True
+telebot.apihelper.RETRY_TIMEOUT = 1
 
 
 # Set locale for number formatting
@@ -4455,12 +4456,8 @@ logger = logging.getLogger(__name__)
 
 
 if __name__ == "__main__":
-    print(f"Telegram Bot API: {TELEGRAM_API_BASE or 'https://api.telegram.org (напрямую)'}")
     set_bot_commands()
     create_tables()
-
-    # Настройка обхода блокировок
-    telebot.apihelper.RETRY_ON_ERROR = True
 
     # Бот работает через long polling, поэтому webhook должен быть снят.
     # Достаточно одного вызова при старте: на VPS всегда запущен ровно один

@@ -175,6 +175,13 @@ if echo "$logs" | grep -qiE 'Traceback|ModuleNotFoundError|Conflict: terminated 
 	exit 1
 fi
 
+# Без закрепления адресов Telegram в /etc/hosts бот берёт из DNS заблокированный
+# IPv4 и отвечает с задержками; после переустановки сервера его легко потерять.
+if ! remote "grep -q 'api.telegram.org' /etc/hosts"; then
+	echo
+	ylw "⚠ В /etc/hosts на сервере нет закрепления api.telegram.org — см. раздел Deployment в CLAUDE.md"
+fi
+
 if remote "test -f $APP_DIR/custom_rate.json"; then
 	echo
 	ylw "⚠ На сервере есть custom_rate.json — курс задан вручную через /set_krw_rate"

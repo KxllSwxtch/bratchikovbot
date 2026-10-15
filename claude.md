@@ -50,8 +50,12 @@ This project is a Telegram bot for the company "Импорт без пробле
 ## Deployment
 
 - The bot runs on a Timeweb VPS in Moscow (`root@201.24.125.174`, `/opt/bratchikovbot`) as the systemd unit `bratchikovbot.service`, not on Heroku. Deploy with `./deploy.sh`; read logs with `./deploy.sh --logs` or `journalctl -u bratchikovbot -f` on the server.
-- Russian hosting blocks HTTPS to `api.telegram.org`, so Bot API calls go through a Caddy relay abroad set in `TELEGRAM_API_BASE` (`.env`). Empty means direct access.
-- Symptom of a broken relay or block: the service shows "running" but the bot is silent, logs show `Max retries exceeded ... api.telegram.org`, and `curl -I https://api.telegram.org` on the VPS times out.
+- Telegram is throttled from this VPS. The IPv4 that DNS returns for `api.telegram.org` (149.154.166.110) is fully blocked, and about a third of new connections to the other Telegram addresses are dropped.
+- Two countermeasures, both required:
+  - `main.py` sets `telebot.apihelper.CONNECT_TIMEOUT = 3` with `RETRY_ON_ERROR`, so a dropped connection is retried in seconds instead of hanging for 30 s.
+  - The server's `/etc/hosts` pins `api.telegram.org` to `2001:67c:4e8:f004::9` and `149.154.167.220`, between `# BEGIN/END bratchikovbot telegram pin` markers (backups at `/etc/hosts.bak-*`). If Telegram moves its API to new addresses, update or remove that block.
+- Symptoms: the service shows "running" but the bot replies slowly or not at all, and logs show `ConnectTimeout` / `Max retries exceeded ... api.telegram.org`. To check, run `curl -sS --connect-timeout 3 -o /dev/null -w '%{http_code}\n' https://api.telegram.org` on the VPS a few times; `302` means it got through.
+- The subscription check on `/start` has always failed with `chat not found`, because `@bratchikov_cars` is not a channel the bot can see. Users just get the "subscribe" prompt; nothing else is gated.
 
 ## Customization
 
