@@ -139,7 +139,8 @@ sudo -u $RUN_AS git pull --ff-only origin $BRANCH
 after=\$(sha256sum requirements.txt | cut -d' ' -f1)
 if [ "\$before" != "\$after" ]; then
 	echo "requirements.txt изменился — обновляю зависимости"
-	sudo -u $RUN_AS $APP_DIR/.venv/bin/pip install --quiet -r requirements.txt
+	# .venv создан через uv, pip в нём нет
+	sudo -u $RUN_AS uv pip install --quiet --python $APP_DIR/.venv/bin/python -r requirements.txt
 else
 	echo "requirements.txt без изменений — зависимости не трогаю"
 fi
