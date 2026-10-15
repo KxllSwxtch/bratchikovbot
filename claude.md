@@ -47,6 +47,12 @@ This project is a Telegram bot for the company "Импорт без пробле
 - Car age comes from `manufacturedate`, falling back to `regdate`. Horsepower depends on fuel type: engine Ps for petrol/diesel, motor Ps for EV and range extender, combined system Ps for hybrids. It is never defaulted; if missing, the bot asks the user.
 - Tests: `venv/bin/python -m unittest discover -s tests -v` (fixtures are real API responses).
 
+## Deployment
+
+- The bot runs on a Timeweb VPS in Moscow (`root@201.24.125.174`, `/opt/bratchikovbot`) as the systemd unit `bratchikovbot.service`, not on Heroku. Deploy with `./deploy.sh`; read logs with `./deploy.sh --logs` or `journalctl -u bratchikovbot -f` on the server.
+- Russian hosting blocks HTTPS to `api.telegram.org`, so Bot API calls go through a Caddy relay abroad set in `TELEGRAM_API_BASE` (`.env`). Empty means direct access.
+- Symptom of a broken relay or block: the service shows "running" but the bot is silent, logs show `Max retries exceeded ... api.telegram.org`, and `curl -I https://api.telegram.org` on the VPS times out.
+
 ## Customization
 
 - **Channel username**: Set the `CHANNEL_USERNAME` variable in `main.py` to your Telegram channel.

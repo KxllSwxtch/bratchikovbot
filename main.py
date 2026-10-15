@@ -80,10 +80,17 @@ FUEL_TYPE_NAMES = {
     5: "Гибрид (посл.)",
     6: "Гибрид (парал.)",
 }
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-
 load_dotenv()
 bot_token = os.getenv("BOT_TOKEN")
+
+# С российских VPS api.telegram.org по HTTPS недоступен (блокировка по SNI):
+# процесс жив, но каждый запрос к Bot API висит до таймаута. Поэтому запросы
+# идут через релей за рубежом (Caddy → api.telegram.org). Пусто — напрямую.
+TELEGRAM_API_BASE = os.getenv("TELEGRAM_API_BASE", "").strip().rstrip("/")
+if TELEGRAM_API_BASE:
+    telebot.apihelper.API_URL = TELEGRAM_API_BASE + "/bot{0}/{1}"
+    telebot.apihelper.FILE_URL = TELEGRAM_API_BASE + "/file/bot{0}/{1}"
+
 bot = telebot.TeleBot(bot_token)
 
 
@@ -933,17 +940,6 @@ def check_subscription(call):
             call.id,
             "🚫 Вы не подписались на канал! Оформите подписку, чтобы продолжить.",
         )
-
-
-def is_user_subscribed(user_id):
-    """Проверяет, подписан ли пользователь на канал."""
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/getChatMember?chat_id={CHANNEL_USERNAME}&user_id={user_id}"
-    response = requests.get(url).json()
-    return response.get("ok") and response.get("result", {}).get("status") in [
-        "member",
-        "administrator",
-        "creator",
-    ]
 
 
 def print_message(message):
@@ -4459,6 +4455,7 @@ logger = logging.getLogger(__name__)
 
 
 if __name__ == "__main__":
+    print(f"Telegram Bot API: {TELEGRAM_API_BASE or 'https://api.telegram.org (напрямую)'}")
     set_bot_commands()
     create_tables()
 
