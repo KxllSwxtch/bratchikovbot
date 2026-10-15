@@ -169,7 +169,7 @@ step "Проверяю логи на ошибки"
 logs=$(remote "journalctl -u $SERVICE --since '-1 min' --no-pager")
 echo "$logs" | tail -20
 
-if echo "$logs" | grep -qiE 'Traceback|ModuleNotFoundError|Conflict: terminated by other getUpdates|Max retries exceeded|ConnectTimeout|ReadTimeout'; then
+if echo "$logs" | grep -qiE 'Traceback|ModuleNotFoundError|Conflict: terminated by other getUpdates|host=.api\.telegram\.org'; then
 	echo
 	red "✗ В логах есть ошибки — посмотрите вывод выше"
 	echo "  Полные логи: ./deploy.sh --logs"
